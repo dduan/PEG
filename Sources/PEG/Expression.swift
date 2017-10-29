@@ -1,18 +1,17 @@
-struct CharacterGroup {}
-struct Context {}
+public struct CharacterGroup {}
 
-indirect enum Expression {
-    enum RepeatFlavor {
+public indirect enum Expression {
+    public enum RepeatFlavor {
         case zeroOrMore
         case oneOrMore
     }
 
-    enum PeekFlavor {
+    public enum PeekFlavor {
         case lookAhead
         case not
     }
 
-    enum CharacterGroupFlavor {
+    public enum CharacterGroupFlavor {
         case whitelist
         case blacklist
     }
@@ -28,7 +27,7 @@ indirect enum Expression {
 }
 
 extension Expression {
-    func parse(_ context: Context) -> Result? {
-        fatalError()
+    public func parse(_ context: Context) -> Result? {
+        return nil
     }
 }
