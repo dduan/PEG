@@ -1,4 +1,5 @@
 struct CharacterGroup {}
+struct Context {}
 
 indirect enum Expression {
     enum RepeatFlavor {
@@ -24,4 +25,10 @@ indirect enum Expression {
     case peek(PeekFlavor, Expression)
     case `optional`(Expression)
     case rule(String)
+}
+
+extension Expression {
+    func parse(_ context: Context) -> Result? {
+        fatalError()
+    }
 }
