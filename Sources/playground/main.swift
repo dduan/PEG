@@ -19,7 +19,7 @@ func c(_ text: String) -> Context {
 
 let literal = Expression.literal("aa")
 print(
-    literal.parse(c("aa")) ?? "<FAIL>",
+    literal.parse(c("aa"))?.text ?? "<FAIL>",
     literal.parse(c("aab")) ?? "<FAIL>",
     literal.parse(c("aba")) ?? "<FAIL>"
 )
