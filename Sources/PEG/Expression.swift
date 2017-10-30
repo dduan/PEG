@@ -1,5 +1,6 @@
 public indirect enum Expression {
     public final class Properties {
+        var convert: ((Result) -> Any)? = nil
         public init() {}
     }
 
@@ -37,6 +38,16 @@ public indirect enum Expression {
         case .peek(_,_, let p): return p
         case .optional(_, let p): return p
         case .rule(_, let p): return p
+        }
+    }
+
+    public var convert: ((Result) -> Any)? {
+        get {
+            return self.properties.convert
+        }
+
+        nonmutating set {
+            return self.properties.convert = newValue
         }
     }
 }

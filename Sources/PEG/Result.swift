@@ -17,18 +17,49 @@ public struct Result {
         }
     }
 
+    public enum Value {
+        case raw([Result])
+        case converted(Any)
+    }
+
     let position: Position
     let choice: Int
-    let children: [Result]
+    let value: Value
 
-    public init(position: Position, choice: Int = -1, children: [Result] = []) {
+    var children: [Result] {
+        switch self.value {
+        case .raw(let children): return children
+        case .converted: return []
+        }
+    }
+
+    public init(position: Position, choice: Int = -1, value: Value) {
         self.position = position
         self.choice = choice
-        self.children = children
+        self.value = value
+    }
+
+    public init(position: Position, choice: Int = -1) {
+        self.position = position
+        self.choice = choice
+        self.value = .raw([])
     }
 
     public var text: String {
         return self.position.matchedText
+    }
+
+    public func converted<T>() -> T? {
+        switch self.value {
+        case .converted(let value as T):
+            return value
+        default:
+            return nil
+        }
+    }
+
+    func with(value: Value) -> Result {
+        return Result(position: self.position, choice: self.choice, value: value)
     }
 }
 

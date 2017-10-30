@@ -17,8 +17,16 @@ func c(_ text: String) -> Context {
 }
 
 let literal = s("aa")
+print(literal.convert ?? "nil")
+literal.convert = { result in
+    return result.text + "!"
+}
+
 print(
     literal.parse(c("aa"))?.text ?? "<FAIL>",
     literal.parse(c("aab")) ?? "<FAIL>",
     literal.parse(c("aba")) ?? "<FAIL>"
 )
+
+let converted: String = literal.parse(c("aa"))?.converted() ?? "<FAIL>"
+print(converted)
