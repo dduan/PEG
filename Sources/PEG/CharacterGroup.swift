@@ -3,14 +3,26 @@
 // [a-c] + [d-d] = [a-d]
 
 extension Character {
-    func isNextTo(_ other: Character) -> Bool {
-        fatalError()
+    func isPrior(to other: Character) -> Bool {
+        if self.unicodeScalars.count != other.unicodeScalars.count {
+            return false
+        }
+
+        for (u0, u1) in zip(self.unicodeScalars.dropLast(), other.unicodeScalars.dropLast()) {
+            if u0 != u1 {
+                return false
+            }
+        }
+
+        return self.unicodeScalars.last!.value + 1 == other.unicodeScalars.last!.value
     }
 }
 
 extension ClosedRange where Bound == Character {
     func inMergable(_ other: ClosedRange<Character>) -> Bool {
-        fatalError()
+        return self.overlaps(other) ||
+            self.upperBound.isPrior(to: other.lowerBound) ||
+            other.upperBound.isPrior(to: self.lowerBound)
     }
 }
 
