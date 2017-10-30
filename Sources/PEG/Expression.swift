@@ -1,4 +1,8 @@
 public indirect enum Expression {
+    public final class Properties {
+        public init() {}
+    }
+
     public enum RepeatFlavor {
         case zeroOrMore
         case oneOrMore
@@ -14,12 +18,25 @@ public indirect enum Expression {
         case blacklist
     }
 
-    case literal(String)
-    case characterGroup(CharacterGroupFlavor, CharacterGroup)
-    case sequence([Expression])
-    case oneOf([Expression])
-    case `repeat`(RepeatFlavor, Expression)
-    case peek(PeekFlavor, Expression)
-    case `optional`(Expression)
-    case rule(String)
+    case literal(String, Properties)
+    case characterGroup(CharacterGroupFlavor, CharacterGroup, Properties)
+    case sequence([Expression], Properties)
+    case oneOf([Expression], Properties)
+    case `repeat`(RepeatFlavor, Expression, Properties)
+    case peek(PeekFlavor, Expression, Properties)
+    case `optional`(Expression, Properties)
+    case rule(String, Properties)
+
+    var properties: Properties {
+        switch self {
+        case .literal(_, let p): return p
+        case .characterGroup(_,_, let p): return p
+        case .sequence(_, let p): return p
+        case .oneOf(_, let p): return p
+        case .repeat(_,_, let p): return p
+        case .peek(_,_, let p): return p
+        case .optional(_, let p): return p
+        case .rule(_, let p): return p
+        }
+    }
 }

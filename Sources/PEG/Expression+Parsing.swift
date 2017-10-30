@@ -11,7 +11,7 @@ extension Expression {
 
     public func parse(_ context: Context) -> Result? {
         switch self {
-        case .literal(let literal):
+        case .literal(let literal, _):
             return self.parseLiteral(with: literal, context: context)
         default:
             return nil
