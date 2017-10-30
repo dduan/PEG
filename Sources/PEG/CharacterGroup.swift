@@ -1,7 +1,3 @@
-// [a-d] + [c-g] = [a-g]
-// [a-d] + [g-g] = [a-d, g-g]
-// [a-c] + [d-d] = [a-d]
-
 extension Character {
     func isPrior(to other: Character) -> Bool {
         if self.unicodeScalars.count != other.unicodeScalars.count {
@@ -19,7 +15,7 @@ extension Character {
 }
 
 extension ClosedRange where Bound == Character {
-    func inMergable(_ other: ClosedRange<Character>) -> Bool {
+    func isMergable(with other: ClosedRange<Character>) -> Bool {
         return self.overlaps(other) ||
             self.upperBound.isPrior(to: other.lowerBound) ||
             other.upperBound.isPrior(to: self.lowerBound)
