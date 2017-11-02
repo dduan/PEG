@@ -26,7 +26,14 @@ public struct CharacterGroup {
     var ranges = [ClosedRange<Character>]()
 
     public init(_ ranges: [ClosedRange<Character>]) {
-        self.ranges = ranges // TODO: replace me.
+        self.ranges.reserveCapacity(ranges.count)
+        for range in ranges {
+            self.insert(range)
+        }
+    }
+
+    public init(_ ranges: ClosedRange<Character>...) {
+        self.init(ranges)
     }
 
     public func insert(_ range: ClosedRange<Character>) {

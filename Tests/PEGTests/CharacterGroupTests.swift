@@ -35,3 +35,230 @@ final class ClosedRangeCharacterExtensionTests: XCTestCase {
         ("testClosedRangeCharacterIsMergableWith", testClosedRangeCharacterIsMergableWith),
     ]
 }
+
+final class CharacterGroupTests: XCTestCase {
+    func testInit() {
+        let tests: [([ClosedRange<Character>], String)] = [
+            ([
+                "j"..."n",
+             ], "j-n"),
+
+            ([
+                "j"..."n",
+                "j"..."n",
+             ], "j-n"),
+
+            ([
+                "j"..."n",
+                "k"..."m",
+             ], "j-n"),
+
+            ([
+                "j"..."n",
+                "i"..."o",
+             ], "i-o"),
+
+            ([
+                "j"..."n",
+                "n"..."p",
+             ], "j-p"),
+
+            ([
+                "j"..."n",
+                "o"..."p",
+             ], "j-p"),
+
+            ([
+                "j"..."n",
+                "g"..."l",
+             ], "g-n"),
+
+            ([
+                "j"..."n",
+                "g"..."j",
+             ], "g-n"),
+
+            ([
+                "j"..."n",
+                "g"..."i",
+             ], "g-n"),
+
+            ([
+                "j"..."n",
+                "d"..."f",
+             ], "d-fg-n"),
+
+            ([
+                "j"..."n",
+                "q"..."s",
+             ], "g-nq-s"),
+
+            ([
+                "j"..."n",
+                "p"..."s",
+                "o"..."o",
+             ], "j-s"),
+
+            ([
+                "j"..."n",
+                "p"..."s",
+                "e"..."h",
+             ], "e-hj-np-s"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "i"..."i",
+             ], "e-n"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "g"..."l",
+             ], "e-n"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "e"..."n",
+             ], "e-n"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "e"..."n",
+             ], "e-n"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "d"..."o",
+             ], "d-o"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "d"..."k",
+             ], "d-n"),
+        ]
+
+        for (input, expected) in tests {
+            XCTAssertEqual(CharacterGroup(input).description, expected, "\(input)")
+        }
+    }
+
+    func testInsert() {
+        let tests: [([ClosedRange<Character>], String)] = [
+            ([
+                "j"..."n",
+             ], "j-n"),
+
+            ([
+                "j"..."n",
+                "j"..."n",
+             ], "j-n"),
+
+            ([
+                "j"..."n",
+                "k"..."m",
+             ], "j-n"),
+
+            ([
+                "j"..."n",
+                "i"..."o",
+             ], "i-o"),
+
+            ([
+                "j"..."n",
+                "n"..."p",
+             ], "j-p"),
+
+            ([
+                "j"..."n",
+                "o"..."p",
+             ], "j-p"),
+
+            ([
+                "j"..."n",
+                "g"..."l",
+             ], "g-n"),
+
+            ([
+                "j"..."n",
+                "g"..."j",
+             ], "g-n"),
+
+            ([
+                "j"..."n",
+                "g"..."i",
+             ], "g-n"),
+
+            ([
+                "j"..."n",
+                "d"..."f",
+             ], "d-fg-n"),
+
+            ([
+                "j"..."n",
+                "q"..."s",
+             ], "g-nq-s"),
+
+            ([
+                "j"..."n",
+                "p"..."s",
+                "o"..."o",
+             ], "j-s"),
+
+            ([
+                "j"..."n",
+                "p"..."s",
+                "e"..."h",
+             ], "e-hj-np-s"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "i"..."i",
+             ], "e-n"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "g"..."l",
+             ], "e-n"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "e"..."n",
+             ], "e-n"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "e"..."n",
+             ], "e-n"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "d"..."o",
+             ], "d-o"),
+
+            ([
+                "j"..."n",
+                "e"..."h",
+                "d"..."k",
+             ], "d-n"),
+        ]
+
+        for (input, expected) in tests {
+            let group = CharacterGroup()
+            for range in input {
+                group.insert(range)
+            }
+
+            XCTAssertEqual(group.description, expected, "\(input)")
+        }
+    }
+}
