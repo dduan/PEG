@@ -30,3 +30,5 @@ print(
 
 let converted: String = literal.parse(c("aa"))?.converted() ?? "<FAIL>"
 print(converted)
+
+print(CharacterGroup(["a"..."b", "e"..."e", "g"..."i"]))

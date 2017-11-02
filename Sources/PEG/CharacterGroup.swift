@@ -25,10 +25,22 @@ extension ClosedRange where Bound == Character {
 public struct CharacterGroup {
     var ranges = [ClosedRange<Character>]()
 
-    func insert(_ range: ClosedRange<Character>) {
+    public init(_ ranges: [ClosedRange<Character>]) {
+        self.ranges = ranges // TODO: replace me.
     }
 
-    func contains(_ character: Character) -> Bool {
+    public func insert(_ range: ClosedRange<Character>) {
+    }
+
+    public func contains(_ character: Character) -> Bool {
         fatalError()
+    }
+}
+
+extension CharacterGroup: CustomStringConvertible {
+    public var description: String {
+        return self.ranges
+            .map { $0.lowerBound == $0.upperBound ? "\($0.upperBound)" : "\($0.lowerBound)-\($0.upperBound)" }
+            .joined(separator: "")
     }
 }
