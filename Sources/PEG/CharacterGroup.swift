@@ -22,25 +22,62 @@ extension ClosedRange where Bound == Character {
     }
 }
 
-public struct CharacterGroup {
+public final class CharacterGroup {
     var ranges = [ClosedRange<Character>]()
 
-    public init(_ ranges: [ClosedRange<Character>]) {
+    public required init(_ ranges: [ClosedRange<Character>]) {
         self.ranges.reserveCapacity(ranges.count)
         for range in ranges {
             self.insert(range)
         }
     }
 
-    public init(_ ranges: ClosedRange<Character>...) {
+    public convenience init(_ ranges: ClosedRange<Character>...) {
         self.init(ranges)
     }
 
     public func insert(_ range: ClosedRange<Character>) {
+        if self.ranges.isEmpty {
+            self.ranges.append(range)
+            return
+        }
+
+        var insertPosition = self.find(for: range, 0, self.ranges.count)
+        var cursor = insertPosition
+        var lowerBound = range.lowerBound
+        var upperBound = range.upperBound
+
+        let previousIndex = insertPosition - 1
+        if insertPosition > 0 && range.isMergable(with: self.ranges[previousIndex]) {
+            lowerBound = self.ranges[previousIndex].lowerBound
+            upperBound = max(self.ranges[previousIndex].upperBound, range.upperBound)
+            insertPosition -= 1
+        }
+
+        while cursor < self.ranges.count && range.isMergable(with: self.ranges[cursor]) {
+            upperBound = max(self.ranges[cursor].upperBound, range.upperBound)
+            cursor += 1
+        }
+
+        self.ranges.replaceSubrange(insertPosition..<cursor, with: [lowerBound...upperBound])
     }
 
     public func contains(_ character: Character) -> Bool {
         fatalError()
+    }
+
+    private func find(for range: ClosedRange<Character>, _ start: Int, _ end: Int) -> Int {
+        if start == end {
+            return start
+        }
+
+        let middle = start + (end - start) / 2
+
+        if range.lowerBound <= self.ranges[middle].lowerBound {
+            return self.find(for: range, start, middle)
+        } else {
+            return self.find(for: range, middle + 1, end)
+        }
     }
 }
 
