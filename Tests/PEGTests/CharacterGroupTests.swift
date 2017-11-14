@@ -261,4 +261,37 @@ final class CharacterGroupTests: XCTestCase {
             XCTAssertEqual(group.description, expected, "\(input)")
         }
     }
+
+    func testContains() {
+        let tests: [([ClosedRange<Character>], Character)] = [
+            ([
+                "j"..."n",
+             ], "j"),
+            ([
+                "j"..."n",
+             ], "n"),
+            ([
+                "j"..."n",
+             ], "k"),
+            ([
+                "j"..."j",
+             ], "j"),
+            ([
+                "a"..."a",
+                "p"..."s",
+             ], "q"),
+            ([
+                "a"..."a",
+                "p"..."s",
+             ], "a"),
+            ([
+                "p"..."s",
+                "y"..."z",
+             ], "q"),
+        ]
+
+        for test in tests {
+            XCTAssertTrue(CharacterGroup(test.0).contains(test.1))
+        }
+    }
 }

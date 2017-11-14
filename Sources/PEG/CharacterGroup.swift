@@ -63,7 +63,9 @@ public final class CharacterGroup {
     }
 
     public func contains(_ character: Character) -> Bool {
-        fatalError()
+        let position = find(for: character...character, 0, self.ranges.count)
+        return position < self.ranges.count && self.ranges[position].lowerBound == character ||
+            position > 0 && self.ranges[position - 1].contains(character)
     }
 
     private func find(for range: ClosedRange<Character>, _ start: Int, _ end: Int) -> Int {
