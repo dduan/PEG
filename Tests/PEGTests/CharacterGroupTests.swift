@@ -86,12 +86,12 @@ final class CharacterGroupTests: XCTestCase {
             ([
                 "j"..."n",
                 "d"..."f",
-             ], "d-fg-n"),
+             ], "d-fj-n"),
 
             ([
                 "j"..."n",
                 "q"..."s",
-             ], "g-nq-s"),
+             ], "j-nq-s"),
 
             ([
                 "j"..."n",
@@ -196,12 +196,12 @@ final class CharacterGroupTests: XCTestCase {
             ([
                 "j"..."n",
                 "d"..."f",
-             ], "d-fg-n"),
+             ], "d-fj-n"),
 
             ([
                 "j"..."n",
                 "q"..."s",
-             ], "g-nq-s"),
+             ], "j-nq-s"),
 
             ([
                 "j"..."n",
