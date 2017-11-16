@@ -14,6 +14,10 @@ public func seq(_ expressions: [Expression]) -> Expression {
     return .sequence(expressions, Expression.Properties())
 }
 
+public func seq(_ expressions: Expression...) -> Expression {
+    return .sequence(expressions, Expression.Properties())
+}
+
 public func oneOf(_ expressions: [Expression]) -> Expression {
     return .oneOf(expressions, Expression.Properties())
 }

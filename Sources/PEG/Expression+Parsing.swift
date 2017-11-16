@@ -17,6 +17,8 @@ extension Expression {
             return self.parseLiteral(with: literal, context: context)
         case .characterGroup(let flavor, let group, _):
             return self.parseGroup(with: flavor, group: group, context: context)
+        case .sequence(let subexpressions, _):
+            return self.parseSequence(with: subexpressions, context: context)
         default:
             return nil
         }
@@ -31,6 +33,7 @@ extension Expression {
         }
         return nil
     }
+
     private func parseGroup(with flavor: Expression.CharacterGroupFlavor, group: CharacterGroup,
                             context: Context) -> Result?
     {
@@ -47,5 +50,26 @@ extension Expression {
         default:
             return nil
         }
+    }
+
+    private func parseSequence(with expressions: [Expression], context: Context) -> Result? {
+        let text = context.text
+        let start = context.cursor
+        let nextContext = Context(text: text, position: start)
+
+        var children = [Result]()
+
+        for expression in expressions {
+            guard let result = expression.parse(nextContext) else {
+                return nil
+            }
+
+            let resultRange = result.position.range
+            nextContext.cursor += resultRange.upperBound - resultRange.lowerBound
+            children.append(result)
+        }
+
+        let position = Result.Position(text, start, nextContext.cursor)
+        return Result(position: position, value: .raw(children))
     }
 }

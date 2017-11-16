@@ -26,7 +26,7 @@ public struct Result {
     let choice: Int
     let value: Value
 
-    var children: [Result] {
+    public var children: [Result] {
         switch self.value {
         case .raw(let children): return children
         case .converted: return []

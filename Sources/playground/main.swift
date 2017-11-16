@@ -17,6 +17,7 @@ func c(_ text: String) -> Context {
 }
 
 let literal = s("aa")
+
 print(literal.convert ?? "nil")
 literal.convert = { result in
     return result.text + "!"
@@ -33,6 +34,20 @@ print(converted)
 
 let group = c(CharacterGroup(["d"..."g", "p"..."p"]))
 
-print(group.parse(c("a")) == nil)
-print(group.parse(c("e")) != nil)
-print(group.parse(c("p"))?.text == "p")
+// print(group.parse(c("a")) == nil)
+// print(group.parse(c("e")) != nil)
+// print(group.parse(c("p"))?.text == "p")
+
+let sequence = seq(group, literal, group)
+
+print(sequence.parse(c("daaf")) != nil)
+print(sequence.parse(c("daafxxxx")) != nil)
+
+if let sequenceResult = sequence.parse(c("daaf")) {
+    print(sequenceResult.children.count == 3)
+    print(sequenceResult.children[0].text == "d")
+    print(sequenceResult.children[1].text == "aa")
+    print(sequenceResult.children[2].text == "f")
+} else {
+    print("false")
+}
