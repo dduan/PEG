@@ -95,4 +95,18 @@ final class ExpressionTests: XCTestCase {
         XCTAssertNotNil(notExpr.parse(ctx("xdaagxxxxx")))
         XCTAssertEqual(notExpr.parse(ctx("xdaagxxxxx"))?.text.isEmpty, true)
     }
+
+    func testOptional() {
+        let maybeExpr = maybe(literal)
+
+        let maybeNoResult = maybeExpr.parse(ctx("xxxx"))
+
+        XCTAssertNotNil(maybeNoResult)
+        XCTAssertEqual(maybeNoResult?.text.isEmpty, true)
+
+        let maybeYesResult = maybeExpr.parse(ctx("aaxx"))
+
+        XCTAssertNotNil(maybeYesResult)
+        XCTAssertEqual(maybeYesResult?.text, "aa")
+    }
 }

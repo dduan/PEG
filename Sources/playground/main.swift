@@ -26,12 +26,14 @@ print(converted)
 let group = c(CharacterGroup(["d"..."g", "p"..."p"]))
 let sequence = seq(group, literal, group)
 
-let aheadExpr = ahead(sequence)
-print(aheadExpr.parse(ctx("daagxxxxx")) != nil)
-print(aheadExpr.parse(ctx("daagxxxxx"))?.text.isEmpty == true)
-print(aheadExpr.parse(ctx("xdaagxxxxx")) == nil)
+let maybeExpr = maybe(literal)
+let maybeNoResult = maybeExpr.parse(ctx("xxxx"))
 
-let notExpr = not(sequence)
-print(notExpr.parse(ctx("daagxxxxx")) == nil)
-print(notExpr.parse(ctx("xdaagxxxxx")) != nil)
-print(notExpr.parse(ctx("xdaagxxxxx"))?.text.isEmpty == true)
+print(maybeNoResult != nil)
+print(maybeNoResult?.text.isEmpty == true)
+
+let maybeYesResult = maybeExpr.parse(ctx("aaxx"))
+
+print(maybeYesResult != nil)
+print(maybeYesResult?.text == "aa")
+

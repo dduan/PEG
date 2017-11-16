@@ -25,6 +25,8 @@ extension Expression {
             return self.parseRepeat(with: flavor, expression: expression, context: context)
         case .peek(let flavor, let expression, _):
             return self.parsePeek(with: flavor, expression: expression, context: context)
+        case .optional(let expression, _):
+            return self.parseOptional(with: expression, context: context)
         default:
             return nil
         }
@@ -122,6 +124,15 @@ extension Expression {
             return Result(position: position)
         default:
             return nil
+        }
+    }
+
+    private func parseOptional(with expression: Expression, context: Context) -> Result? {
+        if let result = expression.parse(context) {
+            return Result(position: result.position, choice: 1, value: .raw([result]))
+        } else {
+            let position = Result.Position(context.text, context.cursor, context.cursor)
+            return Result(position: position, choice: 0)
         }
     }
 }
