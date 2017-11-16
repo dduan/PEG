@@ -33,4 +33,22 @@ final class ExpressionTests: XCTestCase {
             XCTAssertEqual(sequenceResult.children[2].text, "f")
         }
     }
+
+    func testOneOf() {
+        let oneOfExpr = of(group, literal)
+
+        XCTAssertNil(oneOfExpr.parse(ctx("xxxx")))
+
+        let firstChoiceMatch = oneOfExpr.parse(ctx("p"))
+        let secondChoiceMatch = oneOfExpr.parse(ctx("aa"))
+
+        XCTAssertNotNil(firstChoiceMatch)
+        XCTAssertNotNil(secondChoiceMatch)
+        XCTAssertEqual(firstChoiceMatch?.choice, 0)
+        XCTAssertEqual(secondChoiceMatch?.choice, 1)
+    }
 }
+/*
+
+
+*/

@@ -22,9 +22,9 @@ public struct Result {
         case converted(Any)
     }
 
-    let position: Position
-    let choice: Int
-    let value: Value
+    public let choice: Int
+    public let position: Position
+    public let value: Value
 
     public var children: [Result] {
         switch self.value {
@@ -60,6 +60,10 @@ public struct Result {
 
     func with(value: Value) -> Result {
         return Result(position: self.position, choice: self.choice, value: value)
+    }
+
+    func with(choice: Int) -> Result {
+        return Result(position: self.position, choice: choice, value: self.value)
     }
 }
 

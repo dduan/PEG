@@ -19,6 +19,8 @@ extension Expression {
             return self.parseGroup(with: flavor, group: group, context: context)
         case .sequence(let subexpressions, _):
             return self.parseSequence(with: subexpressions, context: context)
+        case .oneOf(let subexpressions, _):
+            return self.parseOneOf(with: subexpressions, context: context)
         default:
             return nil
         }
@@ -71,5 +73,15 @@ extension Expression {
 
         let position = Result.Position(text, start, nextContext.cursor)
         return Result(position: position, value: .raw(children))
+    }
+
+    private func parseOneOf(with expressions: [Expression], context: Context) -> Result? {
+        for (index, expression) in expressions.enumerated() {
+            if let result = expression.parse(context) {
+                return result.with(choice: index)
+            }
+        }
+
+        return nil
     }
 }

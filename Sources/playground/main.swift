@@ -12,7 +12,7 @@ let input = """
 let arithmetic = Grammar(rootName: "Arithmetic", input)
 print(arithmetic.parse("1+2*3/(4-5)") ?? "<FAIL>")
 
-func c(_ text: String) -> Context {
+func ctx(_ text: String) -> Context {
     return Context(text: text, position: 0)
 }
 
@@ -23,25 +23,17 @@ literal.convert = { result in
     return result.text + "!"
 }
 
-print(
-    literal.parse(c("aa"))?.text ?? "<FAIL>",
-    literal.parse(c("aab")) ?? "<FAIL>",
-    literal.parse(c("aba")) ?? "<FAIL>"
-)
-
-let converted: String = literal.parse(c("aa"))?.converted() ?? "<FAIL>"
+let converted: String = literal.parse(ctx("aa"))?.converted() ?? "<FAIL>"
 print(converted)
 
 let group = c(CharacterGroup(["d"..."g", "p"..."p"]))
-
 let sequence = seq(group, literal, group)
+let oneOfExpr = of(group, literal)
 
-
-if let sequenceResult = sequence.parse(c("daaf")) {
-    print(sequenceResult.children.count == 3)
-    print(sequenceResult.children[0].text == "d")
-    print(sequenceResult.children[1].text == "aa")
-    print(sequenceResult.children[2].text == "f")
-} else {
-    print("false")
-}
+print(oneOfExpr.parse(ctx("xxxx")) == nil)
+let firstChoiceMatch = oneOfExpr.parse(ctx("p"))
+let secondChoiceMatch = oneOfExpr.parse(ctx("aa"))
+print(firstChoiceMatch != nil)
+print(secondChoiceMatch != nil)
+print(firstChoiceMatch?.choice == 0)
+print(secondChoiceMatch?.choice == 1)
