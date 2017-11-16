@@ -34,14 +34,8 @@ print(converted)
 
 let group = c(CharacterGroup(["d"..."g", "p"..."p"]))
 
-// print(group.parse(c("a")) == nil)
-// print(group.parse(c("e")) != nil)
-// print(group.parse(c("p"))?.text == "p")
-
 let sequence = seq(group, literal, group)
 
-print(sequence.parse(c("daaf")) != nil)
-print(sequence.parse(c("daafxxxx")) != nil)
 
 if let sequenceResult = sequence.parse(c("daaf")) {
     print(sequenceResult.children.count == 3)
