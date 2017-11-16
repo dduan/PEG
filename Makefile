@@ -1,4 +1,4 @@
-all: test playground
+all: playground
 
 playground: build
 	@.build/debug/playground

@@ -31,5 +31,8 @@ print(
 let converted: String = literal.parse(c("aa"))?.converted() ?? "<FAIL>"
 print(converted)
 
-print(CharacterGroup(["a"..."b", "e"..."e", "g"..."i"]))
-print(CharacterGroup(["p"..."s", "y"..."z"]).contains("q"))
+let group = c(CharacterGroup(["d"..."g", "p"..."p"]))
+
+print(group.parse(c("a")) == nil)
+print(group.parse(c("e")) != nil)
+print(group.parse(c("p"))?.text == "p")
