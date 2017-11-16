@@ -23,6 +23,8 @@ extension Expression {
             return self.parseOneOf(with: subexpressions, context: context)
         case .repeat(let flavor, let expression, _):
             return self.parseRepeat(with: flavor, expression: expression, context: context)
+        case .peek(let flavor, let expression, _):
+            return self.parsePeek(with: flavor, expression: expression, context: context)
         default:
             return nil
         }
@@ -108,5 +110,18 @@ extension Expression {
 
         let position = Result.Position(text, start, nextContext.cursor)
         return Result(position: position, value: .raw(children))
+    }
+
+    private func parsePeek(with flavor: Expression.PeekFlavor, expression: Expression,
+                          context: Context) -> Result?
+    {
+        let result = expression.parse(context)
+        switch (result, flavor) {
+        case (.some, .lookAhead), (.none, .not):
+            let position = Result.Position(context.text, context.cursor, context.cursor)
+            return Result(position: position)
+        default:
+            return nil
+        }
     }
 }

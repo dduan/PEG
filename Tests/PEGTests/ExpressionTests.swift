@@ -79,4 +79,20 @@ final class ExpressionTests: XCTestCase {
         XCTAssertEqual(oneOrMoreResult.children[3].text, "p")
         XCTAssertEqual(oneOrMoreResult.children[3].choice, 0)
     }
+
+    func testPeekLookAhead() {
+        let sequence = seq(group, literal, group)
+        let aheadExpr = ahead(sequence)
+        XCTAssertNotNil(aheadExpr.parse(ctx("daagxxxxx")))
+        XCTAssertEqual(aheadExpr.parse(ctx("daagxxxxx"))?.text.isEmpty, true)
+        XCTAssertNil(aheadExpr.parse(ctx("xdaagxxxxx")))
+    }
+
+    func testPeekNot() {
+        let sequence = seq(group, literal, group)
+        let notExpr = not(sequence)
+        XCTAssertNil(notExpr.parse(ctx("daagxxxxx")))
+        XCTAssertNotNil(notExpr.parse(ctx("xdaagxxxxx")))
+        XCTAssertEqual(notExpr.parse(ctx("xdaagxxxxx"))?.text.isEmpty, true)
+    }
 }
