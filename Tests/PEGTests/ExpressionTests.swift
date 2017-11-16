@@ -19,6 +19,7 @@ final class ExpressionTests: XCTestCase {
         XCTAssertEqual(group.parse(ctx("e"))?.text, "e")
         XCTAssertEqual(group.parse(ctx("pxxxx"))?.text, "p")
         XCTAssertNil(group.parse(ctx("a")))
+        XCTAssertNotNil(group.parse(Context(text: "aadaap", position: 2)))
     }
 
     func testSequence() {
@@ -47,8 +48,35 @@ final class ExpressionTests: XCTestCase {
         XCTAssertEqual(firstChoiceMatch?.choice, 0)
         XCTAssertEqual(secondChoiceMatch?.choice, 1)
     }
+
+    func testZeroOrMore() {
+        let sequence = seq(group, literal, group)
+        let repeatExpr0 = zero(sequence)
+        XCTAssertNotNil(repeatExpr0.parse(ctx("xxxxxx")))
+        let repeatExpr0Result = repeatExpr0.parse(ctx("daafxxxx"))
+        XCTAssertNotNil(repeatExpr0Result)
+        XCTAssertEqual(repeatExpr0Result?.text, "daaf")
+        XCTAssertEqual(repeatExpr0Result?.children[0].text, "daaf")
+
+    }
+
+    func testOneOrMore() {
+        let oneOfExpr = of(group, literal)
+        let repeatExpr1 = one(oneOfExpr)
+        XCTAssertNil(repeatExpr1.parse(ctx("xxxxxx")))
+
+        let result = repeatExpr1.parse(ctx("aadaap"))
+        XCTAssertNotNil(result)
+
+        guard let oneOrMoreResult = result else { return }
+        XCTAssertEqual(oneOrMoreResult.children.count, 4)
+        XCTAssertEqual(oneOrMoreResult.children[0].text, "aa")
+        XCTAssertEqual(oneOrMoreResult.children[0].choice, 1)
+        XCTAssertEqual(oneOrMoreResult.children[1].text, "d")
+        XCTAssertEqual(oneOrMoreResult.children[1].choice, 0)
+        XCTAssertEqual(oneOrMoreResult.children[2].text, "aa")
+        XCTAssertEqual(oneOrMoreResult.children[2].choice, 1)
+        XCTAssertEqual(oneOrMoreResult.children[3].text, "p")
+        XCTAssertEqual(oneOrMoreResult.children[3].choice, 0)
+    }
 }
-/*
-
-
-*/

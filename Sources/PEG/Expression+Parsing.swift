@@ -21,6 +21,8 @@ extension Expression {
             return self.parseSequence(with: subexpressions, context: context)
         case .oneOf(let subexpressions, _):
             return self.parseOneOf(with: subexpressions, context: context)
+        case .repeat(let flavor, let expression, _):
+            return self.parseRepeat(with: flavor, expression: expression, context: context)
         default:
             return nil
         }
@@ -39,7 +41,7 @@ extension Expression {
     private func parseGroup(with flavor: Expression.CharacterGroupFlavor, group: CharacterGroup,
                             context: Context) -> Result?
     {
-        guard let character = context.text.first else {
+        guard let character = context.text.dropFirst(context.cursor).first else {
             return nil
         }
 
@@ -83,5 +85,28 @@ extension Expression {
         }
 
         return nil
+    }
+
+    private func parseRepeat(with flavor: Expression.RepeatFlavor, expression: Expression,
+                            context: Context) -> Result?
+    {
+        let text = context.text
+        let start = context.cursor
+        let nextContext = Context(text: text, position: start)
+        var children = [Result]()
+        while true {
+            guard let result = expression.parse(nextContext), !result.position.range.isEmpty else {
+                break
+            }
+            children.append(result)
+            nextContext.cursor = result.position.range.upperBound
+        }
+
+        if case .oneOrMore = flavor, children.count == 0 {
+            return nil
+        }
+
+        let position = Result.Position(text, start, nextContext.cursor)
+        return Result(position: position, value: .raw(children))
     }
 }
