@@ -30,14 +30,14 @@ public indirect enum Expression {
 
     var properties: Properties {
         switch self {
-        case .literal(_, let p): return p
-        case .characterGroup(_,_, let p): return p
-        case .sequence(_, let p): return p
-        case .oneOf(_, let p): return p
-        case .repeat(_,_, let p): return p
-        case .peek(_,_, let p): return p
-        case .optional(_, let p): return p
-        case .rule(_, let p): return p
+        case .literal(_,           let p): return p
+        case .characterGroup(_, _, let p): return p
+        case .sequence(_,          let p): return p
+        case .oneOf(_,             let p): return p
+        case .repeat(_, _,         let p): return p
+        case .peek(_, _,           let p): return p
+        case .optional(_,          let p): return p
+        case .rule(_,              let p): return p
         }
     }
 
