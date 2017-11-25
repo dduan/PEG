@@ -1,5 +1,5 @@
 extension Character {
-    func isPrior(to other: Character) -> Bool {
+    func isImmediatelyPrior(to other: Character) -> Bool {
         if self.unicodeScalars.count != other.unicodeScalars.count {
             return false
         }
@@ -17,8 +17,8 @@ extension Character {
 extension ClosedRange where Bound == Character {
     func isMergable(with other: ClosedRange<Character>) -> Bool {
         return self.overlaps(other) ||
-            self.upperBound.isPrior(to: other.lowerBound) ||
-            other.upperBound.isPrior(to: self.lowerBound)
+            self.upperBound.isImmediatelyPrior(to: other.lowerBound) ||
+            other.upperBound.isImmediatelyPrior(to: self.lowerBound)
     }
 }
 
