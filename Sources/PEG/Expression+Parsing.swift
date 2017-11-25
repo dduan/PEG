@@ -27,8 +27,8 @@ extension Expression {
             return self.parsePeek(with: flavor, expression: expression, context: context)
         case .optional(let expression, _):
             return self.parseOptional(with: expression, context: context)
-        default:
-            return nil
+        case .rule(let name, _):
+            return self.parseRule(withName: name, context: context)
         }
     }
 
@@ -63,7 +63,7 @@ extension Expression {
     private func parseSequence(with expressions: [Expression], context: Context) -> Result? {
         let text = context.text
         let start = context.cursor
-        let nextContext = Context(text: text, position: start)
+        let nextContext = Context(text: text, position: start, grammar: context.grammar)
 
         var children = [Result]()
 
@@ -96,7 +96,7 @@ extension Expression {
     {
         let text = context.text
         let start = context.cursor
-        let nextContext = Context(text: text, position: start)
+        let nextContext = Context(text: text, position: start, grammar: context.grammar)
         var children = [Result]()
         while true {
             guard let result = expression.parse(nextContext), !result.position.range.isEmpty else {
@@ -134,5 +134,13 @@ extension Expression {
             let position = Result.Position(context.text, context.cursor, context.cursor)
             return Result(position: position, choice: 0)
         }
+    }
+
+    private func parseRule(withName name: String, context: Context) -> Result? {
+        return context
+            .grammar
+            .rule(byName: name)?
+            .expression
+            .parse(context)
     }
 }

@@ -12,8 +12,10 @@ let input = """
 let arithmetic = Grammar(rootName: "Arithmetic", input)
 print(arithmetic.parse("1+2*3/(4-5)") ?? "<FAIL>")
 
+let fake = Grammar(rootName: "test", "")
+
 func ctx(_ text: String) -> Context {
-    return Context(text: text, position: 0)
+    return Context(text: text, position: 0, grammar: fake)
 }
 
 let literal = s("aa")
