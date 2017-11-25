@@ -9,7 +9,7 @@ extension DotRepresentable {
         self.visit(self, &paths)
         let formatted = paths
             .map { (path: (Self, Self)) -> String in
-                return "    \"\(path.0.dotTitle) -> \(path.1.dotTitle)\";"
+                return "    \"\(path.0.dotTitle)\" -> \"\(path.1.dotTitle)\";"
             }
             .joined(separator: "\n")
             return """

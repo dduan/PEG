@@ -27,15 +27,6 @@ print(converted)
 
 let group = c(CharacterGroup(["d"..."g", "p"..."p"]))
 let sequence = seq(group, literal, group)
+let m = maybe(sequence)
 
-let maybeExpr = maybe(literal)
-let maybeNoResult = maybeExpr.parse(ctx("xxxx"))
-
-print(maybeNoResult != nil)
-print(maybeNoResult?.text.isEmpty == true)
-
-let maybeYesResult = maybeExpr.parse(ctx("aaxx"))
-
-print(maybeYesResult != nil)
-print(maybeYesResult?.text == "aa")
-
+print(m.dotRepresentation)
