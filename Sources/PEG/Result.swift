@@ -69,6 +69,9 @@ public struct Result {
 
 extension Result: CustomStringConvertible {
     public var description: String {
-        return "\(self.position.range)"
+        if self.children.isEmpty {
+            return "\(self.choice)|\(self.text)"
+        }
+        return "\(self.choice)|\(self.position.range)"
     }
 }

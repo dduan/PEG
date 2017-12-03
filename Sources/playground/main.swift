@@ -29,4 +29,5 @@ let group = c(CharacterGroup(["d"..."g", "p"..."p"]))
 let sequence = seq(group, literal, group)
 let m = maybe(sequence)
 
-print(m.dotRepresentation)
+let result = m.parse(ctx("daap"))
+print(result?.dotRepresentation ?? "")
