@@ -1,6 +1,12 @@
-struct Rule {
+// TODO: make this internal. It's public for testing purposes
+public struct Rule {
     let name: String
     let expression: Expression
+
+    public init(_ name: String, expression: Expression) {
+        self.name = name
+        self.expression = expression
+    }
 
     func parse(_ context: Context) -> Result? {
         return self.expression.parse(context)
@@ -13,6 +19,11 @@ public final class Grammar {
 
     func rule(byName name: String) -> Rule? {
         return self.rules[name]
+    }
+
+    public init(rootName: String, _ rules: [Rule]) {
+        self.rootName = rootName
+        self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
     }
 
     public init(rootName: String, _ rules: String) {

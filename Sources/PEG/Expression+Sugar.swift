@@ -10,6 +10,16 @@ public func c(_ group: CharacterGroup) -> Expression {
     return .characterGroup(.whitelist, group, Expression.Properties())
 }
 
+public func not(_ ranges: ClosedRange<Character>...) -> Expression {
+    let group = CharacterGroup(ranges)
+    return .characterGroup(.blacklist, group, Expression.Properties())
+}
+
+public func c(_ ranges: ClosedRange<Character>...) -> Expression {
+    let group = CharacterGroup(ranges)
+    return .characterGroup(.whitelist, group, Expression.Properties())
+}
+
 public func seq(_ expressions: [Expression]) -> Expression {
     return .sequence(expressions, Expression.Properties())
 }

@@ -58,6 +58,15 @@ public struct Result {
         }
     }
 
+    public func converted<T>(_ type: T.Type) -> T? {
+        switch self.value {
+        case .converted(let value as T):
+            return value
+        default:
+            return nil
+        }
+    }
+
     func with(value: Value) -> Result {
         return Result(position: self.position, choice: self.choice, value: value)
     }

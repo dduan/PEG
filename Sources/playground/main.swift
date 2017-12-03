@@ -1,33 +1,100 @@
 import PEG
 
 let input = """
-    Arithmetic <- Factor AddExpr
+    Arithmetic <- Factor AddExpr*
     AddExpr    <- ('+' / '-') Factor
-    Factor     <- Primary MulExpr
+    Factor     <- Primary MulExpr*
     MulExpr    <- ('*' / '/') Primary
-    Primary    <- '(' Primary ')' / Number
+    Primary    <- '(' Arithmetic ')' / Number
     Number     <- [0-9]+
 """
 
-let arithmetic = Grammar(rootName: "Arithmetic", input)
-print(arithmetic.parse("1+2*3/(4-5)") ?? "<FAIL>")
+let kArithmetic = "Arithmetic"
+let kAddExpr    = "AddExpr"
+let kFactor     = "Factor"
+let kMulExpr    = "MulExpr"
+let kPrimary    = "Primary"
+let kNumber     = "Number"
 
-let fake = Grammar(rootName: "test", "")
+let numberExpr = one(c("0"..."9"))
+let primaryExpr = of(
+    seq(
+        s("("),
+        ref(kArithmetic),
+        s(")")),
+    ref(kNumber))
+let mulExpr = seq(
+    of(
+        s("*"),
+        s("/")),
+    ref(kPrimary))
+let factorExpr = seq(
+    ref(kPrimary),
+    maybe(
+        ref(kMulExpr)))
+let addExpr = seq(
+    of(
+        s("+"),
+        s("-")),
+    ref(kFactor))
+let arithmeticExpr = seq(
+    ref(kFactor),
+    maybe(
+        ref(kAddExpr)))
 
-func ctx(_ text: String) -> Context {
-    return Context(text: text, position: 0, grammar: fake)
+// Number     <- [0-9]+
+numberExpr.convert  = { Double($0.text)! }
+
+// Primary    <- '(' Arithmetic ')' / Number
+primaryExpr.convert = { result in
+    if result.choice == 1 {
+        return result.converted(Double.self)!
+    }
+    return result.children[1].converted(Double.self)!
 }
 
-let literal = s("aa")
+// MulExpr    <- ('*' / '/') Primary
+mulExpr.convert = { result in
+    var n: Double = result.children[1].converted()!
+    let op = result.children[0]
+    if op.choice == 1 {
+        n = 1 / n
+    }
+    return n
+}
 
-print(literal.convert ?? "nil")
+// Factor     <- Primary MulExpr*
+factorExpr.convert = { result in
+    let n: Double = result.children[0].converted()!
+    let optional = result.children[1]
+    return n * (optional.choice == 0 ? 1 : optional.children[0].converted()!)
+}
 
-let converted: String = literal.parse(ctx("aa"))?.converted() ?? "<FAIL>"
-print(converted)
+// AddExpr    <- ('+' / '-') Factor
+addExpr.convert = { result in
+    var n: Double = result.children[1].converted()!
+    let op = result.children[0]
+    if op.choice == 1 {
+        n = -n
+    }
+    return n
+}
 
-let group = c(CharacterGroup(["d"..."g", "p"..."p"]))
-let sequence = seq(group, literal, group)
-let m = maybe(sequence)
+// Arithmetic <- Factor AddExpr*
+arithmeticExpr.convert = { result in
+    let n: Double = result.children[0].converted() ?? 0
+    let optional = result.children[1]
+    return n + (optional.choice == 0 ? 0 : optional.children[0].converted() ?? 1)
+}
 
-let result = m.parse(ctx("daap"))
-print(result?.dotRepresentation ?? "")
+let grammar = Grammar(rootName: kArithmetic, [
+    (kArithmetic, arithmeticExpr),
+    (kAddExpr, addExpr),
+    (kFactor, factorExpr),
+    (kMulExpr, mulExpr),
+    (kPrimary, primaryExpr),
+    (kNumber, numberExpr),
+].map(Rule.init))
+
+let result = grammar.parse("(96+1)/2-100")
+print(result?.converted(Double.self) ?? "😡")
