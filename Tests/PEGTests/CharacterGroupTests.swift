@@ -3,10 +3,10 @@ import XCTest
 
 final class CharacterExtensionTests: XCTestCase {
     func testCharacterIsPriorTo() {
-        XCTAssertTrue(Character("a").isPrior(to: "b"))
-        XCTAssertTrue(Character("y").isPrior(to: "z"))
-        XCTAssertFalse(Character("x").isPrior(to: "z"))
-        XCTAssertFalse(Character("b").isPrior(to: "a"))
+        XCTAssertTrue(Character("a").isImmediatelyPrior(to: "b"))
+        XCTAssertTrue(Character("y").isImmediatelyPrior(to: "z"))
+        XCTAssertFalse(Character("x").isImmediatelyPrior(to: "z"))
+        XCTAssertFalse(Character("b").isImmediatelyPrior(to: "a"))
     }
 
     static var allTests = [

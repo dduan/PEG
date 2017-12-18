@@ -2,8 +2,9 @@ import XCTest
 @testable import PEG
 
 final class ExpressionTests: XCTestCase {
-    private func ctx(_ text: String) -> Context {
-        return Context(text: text, position: 0)
+    private func ctx(_ text: String, _ position: Int = 0) -> Context {
+        let grammar = Grammar(rootName: "", "")
+        return Context(text: text, position: position, grammar: grammar)
     }
 
     let literal = s("aa")
@@ -19,7 +20,7 @@ final class ExpressionTests: XCTestCase {
         XCTAssertEqual(group.parse(ctx("e"))?.text, "e")
         XCTAssertEqual(group.parse(ctx("pxxxx"))?.text, "p")
         XCTAssertNil(group.parse(ctx("a")))
-        XCTAssertNotNil(group.parse(Context(text: "aadaap", position: 2)))
+        XCTAssertNotNil(group.parse(ctx("aadaap", 2)))
     }
 
     func testSequence() {
