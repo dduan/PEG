@@ -1,5 +1,4 @@
-// TODO: make this internal. It's public for testing purposes
-public struct Rule {
+struct Rule {
     let name: String
     let expression: Expression
 
@@ -21,8 +20,9 @@ public final class Grammar {
         return self.rules[name]
     }
 
-    public init(rootName: String, _ rules: [Rule]) {
+    public init(rootName: String, _ ruleExpressions: [(String, Expression)]) {
         self.rootName = rootName
+        let rules = ruleExpressions.map(Rule.init)
         self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
     }
 

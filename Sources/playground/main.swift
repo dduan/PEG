@@ -87,14 +87,17 @@ arithmeticExpr.convert = { result in
     return n + (optional.choice == 0 ? 0 : optional.children[0].converted() ?? 1)
 }
 
-let grammar = Grammar(rootName: kArithmetic, [
-    (kArithmetic, arithmeticExpr),
-    (kAddExpr, addExpr),
-    (kFactor, factorExpr),
-    (kMulExpr, mulExpr),
-    (kPrimary, primaryExpr),
-    (kNumber, numberExpr),
-].map(Rule.init))
+let grammar = Grammar(
+    rootName: kArithmetic,
+    [
+        (kArithmetic, arithmeticExpr),
+        (kAddExpr, addExpr),
+        (kFactor, factorExpr),
+        (kMulExpr, mulExpr),
+        (kPrimary, primaryExpr),
+        (kNumber, numberExpr),
+    ]
+)
 
 let result = grammar.parse("(96+1)/2-100")
 print(result?.converted(Double.self) ?? "😡")
