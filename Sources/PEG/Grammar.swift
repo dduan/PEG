@@ -2,7 +2,7 @@ struct Rule {
     let name: String
     let expression: Expression
 
-    public init(_ name: String, expression: Expression) {
+    public init(_ name: String, _ expression: Expression) {
         self.name = name
         self.expression = expression
     }
@@ -31,6 +31,12 @@ public final class Grammar {
         // TODO: actually compute the rules.
         self.rules = [:]
     }
+
+    init(rootName: String, _ rules: [Rule]) {
+        self.rootName = rootName
+        self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
+    }
+
 
     public func parse(_ text: String) -> Result? {
         let context = Context(text: text, position: 0, grammar: self)
