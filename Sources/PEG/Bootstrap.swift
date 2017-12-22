@@ -58,6 +58,35 @@ private func convertIdentifier(result: Result) -> String {
 private func convertSequence(result: Result) -> Expression {
     return seq(result.children.map { $0.converted(Expression.self)! })
 }
+
+// .
+private let any = not(CharacterGroup([]))
+
+// Primary    <- Identifier !LEFTARROW / OPEN Expression CLOSE / Literal / Class / DOT
+private func convertPrimary(result: Result) -> Expression {
+    enum Choice: Int {
+        case reference = 0
+        case expression = 1
+        case literal = 2
+        case `class` = 3
+        case dot = 4
+    }
+    guard let choice = Choice(rawValue: result.choice) else {
+        fatalError("expected choice 0-5 from primary expression result")
+    }
+    switch choice {
+    case .reference:
+        return ref(convertIdentifier(result: result[0]))
+    case .expression:
+        return result[1].converted(Expression.self)!
+    case .literal, .class:
+        return result.converted(Expression.self)!
+    case .dot:
+        return any
+    }
+}
+
+func bootstrap() -> [Rule] {
     // EndOfFile  <- !.
     let eof = not(any)
 
@@ -198,6 +227,7 @@ private func convertSequence(result: Result) -> Expression {
         zero(identCont),
         spacing
     )
+
     let kGrammar = "Grammar"
     let kDefinition = "Definition"
     let kExpression = "Expression"
