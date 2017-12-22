@@ -20,6 +20,16 @@ public func c(_ ranges: ClosedRange<Character>...) -> Expression {
     return .characterGroup(.whitelist, group, Expression.Properties())
 }
 
+public func not(_ string: String) -> Expression {
+    let group = CharacterGroup(charactersIn: string)
+    return .characterGroup(.blacklist, group, Expression.Properties())
+}
+
+public func c(_ string: String) -> Expression {
+    let group = CharacterGroup(charactersIn: string)
+    return .characterGroup(.whitelist, group, Expression.Properties())
+}
+
 public func seq(_ expressions: [Expression]) -> Expression {
     return .sequence(expressions, Expression.Properties())
 }

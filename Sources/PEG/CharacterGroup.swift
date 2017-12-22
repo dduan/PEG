@@ -36,6 +36,10 @@ public final class CharacterGroup {
         self.init(ranges)
     }
 
+    public convenience init(charactersIn string: String) {
+        self.init(string.map { $0...$0 })
+    }
+
     public func insert(_ range: ClosedRange<Character>) {
         if self.ranges.isEmpty {
             self.ranges.append(range)

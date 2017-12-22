@@ -61,15 +61,28 @@ func bootstrap() -> [Rule] {
     // DOT        <- ’.’ Spacing
     let dot = seq(s("."), spacing)
 
+    // Char       <- '\\' [nrt'"\\[\\]\\] / !'\\' .
+    let char = of(
+        seq(
+            s("\\"),
+            c("nrt'\"[]\\")
+        ),
+        seq(
+            not(s("\\")),
+            any
+        )
+    )
+
     // Range      <- Char ’-’ Char / Char
     let range = of(
         seq(
-            any,
+            char,
             s("-"),
-            any
+            char
         ),
-        any
+        char
     )
+
     // Class      <- ’[’ '^'? (!’]’ Range)* ’]’ Spacing
     let characterClass = seq(
         s("["),
