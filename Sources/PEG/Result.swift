@@ -8,12 +8,16 @@ public struct Result {
             self.range = start..<end
         }
 
-        public var matchedText: String {
+        var matchedText: String {
             return String(
                 self.text
                     .dropFirst(self.range.lowerBound)
                     .prefix(self.range.upperBound - self.range.lowerBound)
             )
+        }
+
+        var firstMatchedCharacter: Character? {
+            return self.text.dropFirst(self.range.lowerBound).first
         }
     }
 
@@ -47,6 +51,10 @@ public struct Result {
 
     public var text: String {
         return self.position.matchedText
+    }
+
+    public var firstCharacter: Character? {
+        return self.position.firstMatchedCharacter
     }
 
     public func converted<T>() -> T? {

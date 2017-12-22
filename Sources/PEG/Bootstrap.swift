@@ -1,3 +1,30 @@
+private func character(fromAnyOrClass result: Result) -> Character {
+    guard let character = result.firstCharacter else {
+        fatalError("expect character class to have a character in result")
+    }
+    return character
+}
+
+// Char       <- '\\' [nrt'"\\[\\]\\] / !'\\' .
+private func character(fromChar char: Result) -> Character {
+    return character(fromAnyOrClass: char.children[1])
+}
+
+// Literal    <- [’] (![’] Char)* [’] Spacing / ["] (!["] Char)* ["] Spacing
+private func convertLiteral(result: Result) -> Expression {
+    // (![’] Char)*
+    let content = result.children[1]
+
+    var characters = [Character]()
+
+    // ![’] Char
+    for characterContent in content.children {
+        characters.append(character(fromChar: characterContent.children[1]))
+    }
+
+    return s(String(characters))
+}
+
 func bootstrap() -> [Rule] {
     // .
     let any = not(CharacterGroup([]))
@@ -104,7 +131,7 @@ func bootstrap() -> [Rule] {
             zero(
                 seq(
                     not(s("'")),
-                    any
+                    char
                 )
             ),
             s("'"),
@@ -115,13 +142,15 @@ func bootstrap() -> [Rule] {
             zero(
                 seq(
                     not(s("\"")),
-                    any
+                    char
                 )
             ),
             s("\""),
             spacing
         )
     )
+
+    literal.convert = convertLiteral
 
     // IdentStart <- [a-zA-Z_]
     let identStart = c("a"..."z", "A"..."Z", "_"..."_")
