@@ -117,6 +117,32 @@ private func convertSuffix(result: Result) -> Expression {
     fatalError("unknown choice from second half of suffix expression")
 }
 
+// Prefix     <- (AND / NOT)? Suffix
+private func convertPrefix(result: Result) -> Expression {
+    guard let suffixExpression = result[1].converted(Expression.self) else {
+        fatalError("expected expression from prefix parse result")
+    }
+
+    enum Modifier: Int { case lookAhead = 0; case not = 1 }
+    if result[0].choice == 0 {
+        return suffixExpression
+    } else if result[0].choice == 1 {
+        guard let modifier = Modifier(rawValue: result[0][0].choice) else {
+            fatalError("expected modifier from some second half of prefix expression")
+        }
+
+        switch modifier {
+        case .lookAhead:
+            return ahead(suffixExpression)
+        case .not:
+            return not(suffixExpression)
+        }
+    }
+
+    fatalError("unknown choice from second half of prefix expression")
+}
+
+
 func bootstrap() -> [Rule] {
     // EndOfFile  <- !.
     let eof = not(any)
