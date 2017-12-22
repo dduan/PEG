@@ -46,9 +46,13 @@ private func convertCharacterClass(result: Result) -> Expression {
     return .characterGroup(flavor, CharacterGroup(ranges), Expression.Properties())
 }
 
-func bootstrap() -> [Rule] {
-    // .
-    let any = not(CharacterGroup([]))
+// IdentStart <- [a-zA-Z_]
+// IdentCont  <- IdentStart / [0-9]
+// Identifier <- IdentStart IdentCont* Spacing
+private func convertIdentifier(result: Result) -> String {
+    let groupResults = [result[0]] + result[1].children
+    return String(groupResults.map(character(fromAnyOrClass:)))
+}
 
     // EndOfFile  <- !.
     let eof = not(any)
