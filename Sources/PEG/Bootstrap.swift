@@ -12,17 +12,40 @@ private func character(fromChar char: Result) -> Character {
 
 // Literal    <- [’] (![’] Char)* [’] Spacing / ["] (!["] Char)* ["] Spacing
 private func convertLiteral(result: Result) -> Expression {
-    // (![’] Char)*
-    let content = result.children[1]
-
-    var characters = [Character]()
-
-    // ![’] Char
-    for characterContent in content.children {
-        characters.append(character(fromChar: characterContent.children[1]))
-    }
+    let characters = result
+        .children[1]
+        .children
+        .map { character(fromChar: $0.children[1]) }
 
     return s(String(characters))
+}
+
+// Range      <- Char ’-’ Char / Char
+private func range(fromRange result: Result) -> ClosedRange<Character> {
+    enum Choice: Int { case range = 0; case single = 1 }
+    guard let choice = Choice(rawValue: result.choice) else {
+        fatalError("expected choice from Range result")
+    }
+
+    switch choice {
+    case .range:
+        let first = character(fromChar: result.children[0])
+        let second = character(fromChar: result.children[2])
+        return first...second
+    case .single:
+        let char = character(fromChar: result)
+        return char...char
+    }
+}
+
+// Class      <- ’[’ '^'? (!’]’ Range)* ’]’ Spacing
+private func convertCharacterClass(result: Result) -> Expression {
+    let flavor: Expression.CharacterGroupFlavor = result.children[1].choice == 0 ? .whitelist : .blacklist
+    let ranges = result
+        .children[2]
+        .children
+        .map { range(fromRange: $0.children[1]) }
+    return .characterGroup(flavor, CharacterGroup(ranges), Expression.Properties())
 }
 
 func bootstrap() -> [Rule] {
@@ -123,6 +146,8 @@ func bootstrap() -> [Rule] {
         s("]"),
         spacing
     )
+
+    characterClass.convert = convertCharacterClass
 
     // Literal    <- [’] (![’] Char)* [’] Spacing / ["] (!["] Char)* ["] Spacing
     let literal = of(
