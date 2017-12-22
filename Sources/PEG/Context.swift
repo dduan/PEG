@@ -9,3 +9,9 @@ public final class Context {
         self.grammar = grammar
     }
 }
+
+extension Context: CustomStringConvertible {
+    public var description: String {
+        return "\(self.cursor)|\(self.text.dropFirst(self.cursor))"
+    }
+}

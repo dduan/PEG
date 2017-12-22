@@ -9,7 +9,7 @@ func bootstrap() -> [Rule] {
     let eol = of(s("\r\n"), s("\n"), s("\r"))
 
     // Space      <- ’ ’ / ’\t’ / EndOfLine
-    let space = of(s(" "), s("\t"), eof)
+    let space = of(s(" "), s("\t"), eol)
 
     // Comment    <- ’#’ (!EndOfLine .)* EndOfLine
     let comment = seq(

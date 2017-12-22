@@ -16,6 +16,9 @@ public final class Grammar {
     let rootName: String
     let rules: [String: Rule]
 
+    // TODO: Determine if this is worth keeping as a public interface
+    public static let _peg: Grammar = Grammar(rootName: "Grammar", bootstrap())
+
     func rule(byName name: String) -> Rule? {
         return self.rules[name]
     }
