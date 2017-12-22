@@ -7,15 +7,14 @@ private func character(fromAnyOrClass result: Result) -> Character {
 
 // Char       <- '\\' [nrt'"\\[\\]\\] / !'\\' .
 private func character(fromChar char: Result) -> Character {
-    return character(fromAnyOrClass: char.children[1])
+    return character(fromAnyOrClass: char[1])
 }
 
 // Literal    <- [’] (![’] Char)* [’] Spacing / ["] (!["] Char)* ["] Spacing
 private func convertLiteral(result: Result) -> Expression {
-    let characters = result
-        .children[1]
+    let characters = result[1]
         .children
-        .map { character(fromChar: $0.children[1]) }
+        .map { character(fromChar: $0[1]) }
 
     return s(String(characters))
 }
@@ -29,8 +28,8 @@ private func range(fromRange result: Result) -> ClosedRange<Character> {
 
     switch choice {
     case .range:
-        let first = character(fromChar: result.children[0])
-        let second = character(fromChar: result.children[2])
+        let first = character(fromChar: result[0])
+        let second = character(fromChar: result[2])
         return first...second
     case .single:
         let char = character(fromChar: result)
@@ -40,11 +39,10 @@ private func range(fromRange result: Result) -> ClosedRange<Character> {
 
 // Class      <- ’[’ '^'? (!’]’ Range)* ’]’ Spacing
 private func convertCharacterClass(result: Result) -> Expression {
-    let flavor: Expression.CharacterGroupFlavor = result.children[1].choice == 0 ? .whitelist : .blacklist
-    let ranges = result
-        .children[2]
+    let flavor: Expression.CharacterGroupFlavor = result[1].choice == 0 ? .whitelist : .blacklist
+    let ranges = result[2]
         .children
-        .map { range(fromRange: $0.children[1]) }
+        .map { range(fromRange: $0[1]) }
     return .characterGroup(flavor, CharacterGroup(ranges), Expression.Properties())
 }
 

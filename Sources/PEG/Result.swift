@@ -37,6 +37,12 @@ public struct Result {
         }
     }
 
+    public subscript(index: Int) -> Result {
+        get {
+            return self.children[index]
+        }
+    }
+
     public init(position: Position, choice: Int = -1, value: Value) {
         self.position = position
         self.choice = choice
