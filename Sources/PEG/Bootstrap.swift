@@ -59,6 +59,7 @@ private func convertSequence(result: Result) -> Expression {
     return seq(result.children.map { $0.converted(Expression.self)! })
 }
 
+
 // .
 private let any = not(CharacterGroup([]))
 
@@ -71,9 +72,11 @@ private func convertPrimary(result: Result) -> Expression {
         case `class` = 3
         case dot = 4
     }
+
     guard let choice = Choice(rawValue: result.choice) else {
         fatalError("expected choice 0-5 from primary expression result")
     }
+
     switch choice {
     case .reference:
         return ref(convertIdentifier(result: result[0]))
@@ -84,6 +87,34 @@ private func convertPrimary(result: Result) -> Expression {
     case .dot:
         return any
     }
+}
+
+// Suffix     <- Primary (QUESTION / STAR / PLUS)?
+private func convertSuffix(result: Result) -> Expression {
+    guard let primaryExpression = result[0].converted(Expression.self) else {
+        fatalError("expected expression from primary parse result")
+    }
+
+    enum Modifier: Int { case maybe = 0; case zeroOrMore = 1; case oneOrMore = 2 }
+
+    if result[1].choice == 0 {
+        return primaryExpression
+    } else if result[1].choice == 1 {
+        guard let modifier = Modifier(rawValue: result[1][0].choice) else {
+            fatalError("expected modifier from some second half of suffix expression")
+        }
+
+        switch modifier {
+        case .maybe:
+            return maybe(primaryExpression)
+        case .oneOrMore:
+            return one(primaryExpression)
+        case .zeroOrMore:
+            return zero(primaryExpression)
+        }
+    }
+
+    fatalError("unknown choice from second half of suffix expression")
 }
 
 func bootstrap() -> [Rule] {
