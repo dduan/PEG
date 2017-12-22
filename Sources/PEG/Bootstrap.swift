@@ -54,6 +54,10 @@ private func convertIdentifier(result: Result) -> String {
     return String(groupResults.map(character(fromAnyOrClass:)))
 }
 
+// Sequence   <- Prefix*
+private func convertSequence(result: Result) -> Expression {
+    return seq(result.children.map { $0.converted(Expression.self)! })
+}
     // EndOfFile  <- !.
     let eof = not(any)
 
