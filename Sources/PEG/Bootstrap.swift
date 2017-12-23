@@ -315,6 +315,8 @@ func bootstrap() -> [Rule] {
         spacing
     )
 
+    identifier.convert = convertIdentifier
+
     let kGrammar = "Grammar"
     let kDefinition = "Definition"
     let kExpression = "Expression"
@@ -342,6 +344,8 @@ func bootstrap() -> [Rule] {
         )
     )
 
+    primary.expression.convert = convertPrimary
+
     // Suffix     <- Primary (QUESTION / STAR / PLUS)?
     let suffix = Rule(
         kSuffix,
@@ -357,6 +361,8 @@ func bootstrap() -> [Rule] {
         )
     )
 
+    suffix.expression.convert = convertSuffix
+
     // Prefix     <- (AND / NOT)? Suffix
     let prefix = Rule(
         kPrefix,
@@ -371,11 +377,15 @@ func bootstrap() -> [Rule] {
         )
     )
 
+    prefix.expression.convert = convertPrefix
+
     // Sequence   <- Prefix*
     let sequence = Rule(
         kSequence,
         zero(ref(kPrefix))
     )
+
+    sequence.expression.convert = convertSequence
 
     // Expression <- Sequence (SLASH Sequence)*
     let expression = Rule(
@@ -391,6 +401,8 @@ func bootstrap() -> [Rule] {
         )
     )
 
+    expression.expression.convert = convertExpression
+
     // Definition <- Identifier LEFTARROW Expression
     let definition = Rule(
         kDefinition,
@@ -401,6 +413,8 @@ func bootstrap() -> [Rule] {
         )
     )
 
+    definition.expression.convert = convertDefinition
+
     // Grammar    <- Spacing Definition+ EndOfFile
     let grammar = Rule(
         kGrammar,
@@ -410,6 +424,8 @@ func bootstrap() -> [Rule] {
             eof
         )
     )
+
+    grammar.expression.convert = convertGrammar
 
     return [grammar, definition, expression, sequence, prefix, suffix, primary]
 }
