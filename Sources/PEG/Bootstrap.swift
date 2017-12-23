@@ -1,3 +1,4 @@
+// TODO: convert force-unwraps for expression generation to assertions or something.
 private func character(fromAnyOrClass result: Result) -> Character {
     guard let character = result.firstCharacter else {
         fatalError("expect character class to have a character in result")
@@ -58,7 +59,6 @@ private func convertIdentifier(result: Result) -> String {
 private func convertSequence(result: Result) -> Expression {
     return seq(result.children.map { $0.converted(Expression.self)! })
 }
-
 
 // .
 private let any = not(CharacterGroup([]))
@@ -156,6 +156,13 @@ private func convertExpression(result: Result) -> Expression {
         .children // SLASH Sequence
         .map { $0[1].converted(Expression.self)! }
     return seq([firstExpression] + otherExpressions)
+}
+
+// Definition <- Identifier LEFTARROW Expression
+private func convertDefinition(result: Result) -> Rule {
+    let name = convertIdentifier(result: result[0])
+    let expression = result[2].converted(Expression.self)!
+    return Rule(name, expression)
 }
 
 func bootstrap() -> [Rule] {
