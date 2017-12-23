@@ -79,11 +79,11 @@ private func convertPrimary(result: Result) -> Expression {
 
     switch choice {
     case .reference:
-        return ref(convertIdentifier(result: result[0]))
+        return ref(result[0].converted()!)
     case .expression:
-        return result[1].converted(Expression.self)!
+        return result[1].converted()!
     case .literal, .class:
-        return result.converted(Expression.self)!
+        return result.converted()!
     case .dot:
         return any
     }
@@ -161,7 +161,7 @@ private func convertExpression(result: Result) -> Expression {
 
 // Definition <- Identifier LEFTARROW Expression
 private func convertDefinition(result: Result) -> Rule {
-    let name = convertIdentifier(result: result[0])
+    let name = result[0].converted(String.self)!
     let expression = result[2].converted(Expression.self)!
     return Rule(name, expression)
 }

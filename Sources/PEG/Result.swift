@@ -93,8 +93,11 @@ public struct Result {
 extension Result: CustomStringConvertible {
     public var description: String {
         if self.children.isEmpty {
+            if case .converted(let customValue) = self.value {
+                return "\(self.choice)|\(customValue)"
+            }
             return "\(self.choice)|\(self.text)"
         }
-        return "\(self.choice)|\(self.position.range)"
+        return "\(self.choice)|\(self.children.count)|\(self.position.range)"
     }
 }
