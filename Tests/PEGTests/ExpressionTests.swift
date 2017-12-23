@@ -3,7 +3,7 @@ import XCTest
 
 final class ExpressionTests: XCTestCase {
     private func ctx(_ text: String, _ position: Int = 0) -> Context {
-        let grammar = Grammar(rootName: "", "")
+        let grammar = Grammar(rootName: "", "A <- 'a'")!
         return Context(text: text, position: position, grammar: grammar)
     }
 

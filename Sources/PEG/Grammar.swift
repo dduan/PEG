@@ -15,10 +15,13 @@ public final class Grammar {
         self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
     }
 
-    public init(rootName: String, _ rules: String) {
+    public init?(rootName: String, _ rules: String) {
         self.rootName = rootName
-        // TODO: actually compute the rules.
-        self.rules = [:]
+        let peg = Grammar(rootName: "Grammar", bootstrap())
+        guard let rules = peg.parse(rules)?.converted([Rule].self) else {
+            return nil
+        }
+        self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
     }
 
     init(rootName: String, _ rules: [Rule]) {

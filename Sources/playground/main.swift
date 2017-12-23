@@ -9,5 +9,6 @@ let input = """
     Number     <- [0-9]+
 """
 
-let result = Grammar._peg.parse(input)
+let grammar = Grammar(rootName: "Arithmetic", input)!
+let result = grammar.parse("(96+1)/2-100")
 print(result ?? "😡")

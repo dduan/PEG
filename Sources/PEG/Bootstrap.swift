@@ -156,7 +156,7 @@ private func convertExpression(result: Result) -> Expression {
         .children // SLASH Sequence
         .map { $0[1].converted(Expression.self)! }
 
-    return seq([firstExpression] + otherExpressions)
+    return of([firstExpression] + otherExpressions)
 }
 
 // Definition <- Identifier LEFTARROW Expression
