@@ -155,6 +155,7 @@ private func convertExpression(result: Result) -> Expression {
     let otherExpressions = result[1]
         .children // SLASH Sequence
         .map { $0[1].converted(Expression.self)! }
+
     return seq([firstExpression] + otherExpressions)
 }
 
@@ -163,6 +164,13 @@ private func convertDefinition(result: Result) -> Rule {
     let name = convertIdentifier(result: result[0])
     let expression = result[2].converted(Expression.self)!
     return Rule(name, expression)
+}
+
+// Grammar    <- Spacing Definition+ EndOfFile
+private func convertGrammar(result: Result) -> [Rule] {
+    return result[1]
+        .children
+        .map { $0.converted(Rule.self)! }
 }
 
 func bootstrap() -> [Rule] {
