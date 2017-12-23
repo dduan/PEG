@@ -142,6 +142,21 @@ private func convertPrefix(result: Result) -> Expression {
     fatalError("unknown choice from second half of prefix expression")
 }
 
+// Expression <- Sequence (SLASH Sequence)*
+private func convertExpression(result: Result) -> Expression {
+    guard let firstExpression = result[0].converted(Expression.self) else {
+        fatalError("Expected at least one expression in Expression result")
+    }
+
+    if result[1].children.isEmpty {
+        return firstExpression
+    }
+
+    let otherExpressions = result[1]
+        .children // SLASH Sequence
+        .map { $0[1].converted(Expression.self)! }
+    return seq([firstExpression] + otherExpressions)
+}
 
 func bootstrap() -> [Rule] {
     // EndOfFile  <- !.
