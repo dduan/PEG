@@ -4,7 +4,6 @@ let input = """
     Arithmetic <- Factor AddExpr*
     AddExpr    <- ('+' / '-') Factor
     Factor     <- Primary MulExpr*
-
     MulExpr    <- ('*' / '/') Primary
     Primary    <- '(' Arithmetic ')' / Number
     Number     <- [0-9]+
