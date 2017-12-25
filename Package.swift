@@ -12,8 +12,6 @@ let package = Package(
             name: "playground",
             targets: ["playground"]),
     ],
-    dependencies: [
-    ],
     targets: [
         .target(
             name: "playground",
