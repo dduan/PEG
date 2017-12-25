@@ -137,10 +137,6 @@ extension Expression {
     }
 
     private func parseRule(withName name: String, context: Context) -> Result? {
-        return context
-            .grammar
-            .rule(byName: name)?
-            .expression
-            .parse(context)
+        return context.grammar.parse(ruleName: name, context: context)
     }
 }

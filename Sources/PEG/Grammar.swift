@@ -1,13 +1,9 @@
 public final class Grammar {
     let rootName: String
-    let rules: [String: Rule]
+    private let rules: [String: Rule]
 
     // TODO: Determine if this is worth keeping as a public interface
     public static let _peg: Grammar = Grammar(rootName: "Grammar", bootstrap())
-
-    func rule(byName name: String) -> Rule? {
-        return self.rules[name]
-    }
 
     public init(rootName: String, _ ruleExpressions: [(String, Expression)]) {
         self.rootName = rootName
@@ -29,10 +25,17 @@ public final class Grammar {
         self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
     }
 
+    public func convert(_ ruleName: String, with convert: @escaping (Result) -> Any) {
+        self.rules[ruleName]?.expression.convert = convert
+    }
 
     public func parse(_ text: String) -> Result? {
         let context = Context(text: text, position: 0, grammar: self)
         return self.rules[self.rootName]?.parse(context)
+    }
+
+    func parse(ruleName: String, context: Context) -> Result? {
+        return self.rules[ruleName]?.parse(context)
     }
 }
 

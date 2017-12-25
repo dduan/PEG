@@ -1,14 +1,11 @@
 import PEG
 
 let input = """
-    Arithmetic <- Factor AddExpr*
-    AddExpr    <- ('+' / '-') Factor
-    Factor     <- Primary MulExpr*
-    MulExpr    <- ('*' / '/') Primary
-    Primary    <- '(' Arithmetic ')' / Number
     Number     <- [0-9]+
 """
 
-let grammar = Grammar(rootName: "Arithmetic", input)!
-let result = grammar.parse("(96+1)/2-100")
-print(result ?? "😡")
+let grammar = Grammar(rootName: "Number", input)!
+grammar.convert("Number") { Double($0.text)! + 0.01 }
+
+let result = grammar.parse("960000")
+print(result?.converted(Double.self) ?? "😡")
