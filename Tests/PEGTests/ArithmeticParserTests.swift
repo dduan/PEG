@@ -60,8 +60,9 @@ final class ArithmeticParserTests: XCTestCase {
         // Factor     <- Primary MulExpr*
         factorExpr.convert = { result in
             let n: Double = result.children[0].converted()!
-            let optional = result.children[1]
-            return n * (optional.choice == 0 ? 1 : optional.children[0].converted()!)
+            return result.children[1]
+                .children
+                .reduce(n) { $0 * $1.converted()! }
         }
 
         // AddExpr    <- ('+' / '-') Factor
@@ -77,8 +78,9 @@ final class ArithmeticParserTests: XCTestCase {
         // Arithmetic <- Factor AddExpr*
         arithmeticExpr.convert = { result in
             let n: Double = result.children[0].converted() ?? 0
-            let optional = result.children[1]
-            return n + (optional.choice == 0 ? 0 : optional.children[0].converted() ?? 1)
+            return result.children[1]
+                .children
+                .reduce(n) { $0 + $1.converted()! }
         }
 
         let grammar = Grammar(
