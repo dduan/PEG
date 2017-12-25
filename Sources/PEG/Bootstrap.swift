@@ -57,6 +57,10 @@ private func convertIdentifier(result: Result) -> String {
 
 // Sequence   <- Prefix*
 private func convertSequence(result: Result) -> Expression {
+    if result.children.count == 1 {
+        return result[0].converted()!
+    }
+
     return seq(result.children.map { $0.converted(Expression.self)! })
 }
 
@@ -66,11 +70,11 @@ private let any = not(CharacterGroup([]))
 // Primary    <- Identifier !LEFTARROW / OPEN Expression CLOSE / Literal / Class / DOT
 private func convertPrimary(result: Result) -> Expression {
     enum Choice: Int {
-        case reference = 0
+        case reference  = 0
         case expression = 1
-        case literal = 2
-        case `class` = 3
-        case dot = 4
+        case literal    = 2
+        case `class`    = 3
+        case dot        = 4
     }
 
     guard let choice = Choice(rawValue: result.choice) else {
