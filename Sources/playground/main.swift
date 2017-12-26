@@ -1,71 +1,41 @@
 import PEG
 
 let input = """
-    Arithmetic <- Factor AddExpr*
-    AddExpr    <- ('+' / '-') Factor
-    Factor     <- Primary MulExpr*
-    MulExpr    <- ('*' / '/') Primary
-    Primary    <- '(' Arithmetic ')' / Number
-    Number     <- [0-9]+
+    Grammar    <- Spacing Definition+ EndOfFile
+    Definition <- Identifier LEFTARROW Expression
+    Expression <- Sequence (SLASH Sequence)*
+    Sequence   <- Prefix*
+    Prefix     <- (AND / NOT)? Suffix
+    Suffix     <- Primary (QUESTION / STAR / PLUS)?
+    Primary    <- Identifier !LEFTARROW / OPEN Expression CLOSE / Literal / Class / DOT
+
+    Identifier <- IdentStart IdentCont* Spacing
+    IdentStart <- [a-zA-Z_]
+    IdentCont  <- IdentStart / [0-9]
+    Literal    <- ['] (!['] Char)* ['] Spacing / ["] (!["] Char)* ["] Spacing
+    Class      <- '[' '^'? (!']' Range)* ']' Spacing
+    Range      <- Char '-' Char / Char
+    Char       <- '\\\\' [nrt'"\\[\\]\\\\]
+                   / !'\\\\' .
+
+    LEFTARROW  <- '<-' Spacing
+    SLASH      <- '/' Spacing
+    AND        <- '&' Spacing
+    NOT        <- '!' Spacing
+    QUESTION   <- '?' Spacing
+    STAR       <- '*' Spacing
+    PLUS       <- '+' Spacing
+    OPEN       <- '(' Spacing
+    CLOSE      <- ')' Spacing
+    DOT        <- '.' Spacing
+
+    Spacing    <- (Space / Comment)*
+    Comment    <- '#' (!EndOfLine .)* EndOfLine
+    Space      <- ' ' / '\t' / EndOfLine
+    EndOfLine  <- '\r\n' / '\n' / '\r'
+    EndOfFile  <- !.
 """
 
-let kArithmetic = "Arithmetic"
-let kAddExpr    = "AddExpr"
-let kFactor     = "Factor"
-let kMulExpr    = "MulExpr"
-let kPrimary    = "Primary"
-let kNumber     = "Number"
-
-let grammar = Grammar(rootName: kArithmetic, input)!
-
-// Number     <- [0-9]+
-grammar.convert(kNumber) { Double($0.text)! }
-
-// Primary    <- '(' Arithmetic ')' / Number
-grammar.convert(kPrimary) { result in
-    if result.choice == 1 {
-        return result.converted(Double.self) !! "Expected Primary choice #2"
-    }
-
-    return result[1].converted(Double.self) !! "Expected Primary choice #1"
-}
-
-// MulExpr    <- ('*' / '/') Primary
-grammar.convert(kMulExpr) { result in
-    var n: Double = result[1].converted()!
-    let op = result[0]
-    if op.choice == 1 {
-        n = 1 / n
-    }
-    return n
-}
-
-// Factor     <- Primary MulExpr*
-grammar.convert(kFactor) { result in
-    let n: Double = result[0].converted()!
-    return result[1]
-        .children
-        .reduce(n) { $0 * $1.converted()! }
-}
-
-// AddExpr    <- ('+' / '-') Factor
-grammar.convert(kAddExpr) { result in
-    var n: Double = result.children[1].converted()!
-    let op = result.children[0]
-    if op.choice == 1 {
-        n = -n
-    }
-    return n
-}
-
-// Arithmetic <- Factor AddExpr*
-grammar.convert(kArithmetic) { result in
-    let n: Double = result.children[0].converted() ?? 0
-    return result[1]
-        .children
-        .reduce(n) { $0 + $1.converted()! }
-}
-
-
-let result = grammar.parse("(96+1)/2-100")
-print(result?.converted(Double.self) ?? "😡")
+let grammar = Grammar(rootName: "Grammar", input)!
+let result = grammar.parse(input)
+print(result ?? "😡", input.count)
