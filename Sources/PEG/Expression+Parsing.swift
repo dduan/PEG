@@ -1,52 +1,62 @@
+// TODO: whenever a try? is used in parsing, we should inspect the error thrown from subexpression parsing
+// instead of blindly parse forward, even tho failure is acceptable. AKA: figure out specifically which type
+// of failures are expected.
+
+public enum ParsingError: Error {
+    case generic(Expression, Context)
+    case conversionFailure(Expression, Context)
+}
+
 extension Expression {
-    public func parse(_ context: Context) -> Result? {
-        guard let rawResult = self.parse(raw: context) else {
-            return nil
-        }
+    public func parse(_ context: Context) throws -> Result {
+        let rawResult = try self.parse(raw: context)
 
         guard let convert = self.convert else {
             return rawResult
         }
 
+        // TODO: throw error
         return rawResult.with(value: .converted(convert(rawResult)))
     }
 
-    private func parse(raw context: Context) -> Result? {
+    private func parse(raw context: Context) throws -> Result {
         switch self {
         case .literal(let literal, _):
-            return self.parseLiteral(with: literal, context: context)
+            return try self.parseLiteral(with: literal, context: context)
         case .characterGroup(let flavor, let group, _):
-            return self.parseGroup(with: flavor, group: group, context: context)
+            return try self.parseGroup(with: flavor, group: group, context: context)
         case .sequence(let subexpressions, _):
-            return self.parseSequence(with: subexpressions, context: context)
+            return try self.parseSequence(with: subexpressions, context: context)
         case .oneOf(let subexpressions, _):
-            return self.parseOneOf(with: subexpressions, context: context)
+            return try self.parseOneOf(with: subexpressions, context: context)
         case .repeat(let flavor, let expression, _):
-            return self.parseRepeat(with: flavor, expression: expression, context: context)
+            return try self.parseRepeat(with: flavor, expression: expression, context: context)
         case .peek(let flavor, let expression, _):
-            return self.parsePeek(with: flavor, expression: expression, context: context)
+            return try self.parsePeek(with: flavor, expression: expression, context: context)
         case .optional(let expression, _):
-            return self.parseOptional(with: expression, context: context)
+            return try self.parseOptional(with: expression, context: context)
         case .rule(let name, _):
-            return self.parseRule(withName: name, context: context)
+            return try self.parseRule(withName: name, context: context)
         }
     }
 
-    private func parseLiteral(with literal: String, context: Context) -> Result? {
+    private func parseLiteral(with literal: String, context: Context) throws -> Result {
         let text = context.text
         let start = context.cursor
         if text.dropFirst(start).starts(with: literal) {
             let position = Result.Position(text, start, start + literal.count)
             return Result(position: position)
         }
-        return nil
+        // TODO: Add detalis about literal parsing failure
+        throw ParsingError.generic(self, context)
     }
 
     private func parseGroup(with flavor: Expression.CharacterGroupFlavor, group: CharacterGroup,
-                            context: Context) -> Result?
+                            context: Context) throws -> Result
     {
         guard let character = context.text.dropFirst(context.cursor).first else {
-            return nil
+            // TODO: details about reaching end of input for groups
+            throw  ParsingError.generic(self, context)
         }
 
         let isInGroup = group.contains(character)
@@ -56,11 +66,12 @@ extension Expression {
             let position = Result.Position(context.text, context.cursor, context.cursor + 1)
             return Result(position: position)
         default:
-            return nil
+            // TODO: add details about group parsing failure?
+            throw  ParsingError.generic(self, context)
         }
     }
 
-    private func parseSequence(with expressions: [Expression], context: Context) -> Result? {
+    private func parseSequence(with expressions: [Expression], context: Context) throws -> Result {
         let text = context.text
         let start = context.cursor
         let nextContext = Context(text: text, position: start, grammar: context.grammar)
@@ -68,10 +79,8 @@ extension Expression {
         var children = [Result]()
 
         for expression in expressions {
-            guard let result = expression.parse(nextContext) else {
-                return nil
-            }
-
+            // TODO: details about sequence in error? or is subexpression error enough?
+            let result = try expression.parse(nextContext)
             let resultRange = result.position.range
             nextContext.cursor += resultRange.upperBound - resultRange.lowerBound
             children.append(result)
@@ -81,25 +90,28 @@ extension Expression {
         return Result(position: position, value: .raw(children))
     }
 
-    private func parseOneOf(with expressions: [Expression], context: Context) -> Result? {
+    private func parseOneOf(with expressions: [Expression], context: Context) throws -> Result {
         for (index, expression) in expressions.enumerated() {
-            if let result = expression.parse(context) {
+            // TODO: Eating too much errors, inspect inside.
+            if let result = try? expression.parse(context) {
                 return result.with(choice: index)
             }
         }
 
-        return nil
+        // TODO: non of the alternative worked, throw an error with this information
+        throw ParsingError.generic(self, context)
     }
 
     private func parseRepeat(with flavor: Expression.RepeatFlavor, expression: Expression,
-                            context: Context) -> Result?
+                            context: Context) throws-> Result
     {
         let text = context.text
         let start = context.cursor
         let nextContext = Context(text: text, position: start, grammar: context.grammar)
         var children = [Result]()
         while true {
-            guard let result = expression.parse(nextContext), !result.position.range.isEmpty else {
+            // TODO: is this eating up too much errors? Should look inside the error and judge.
+            guard let result = try? expression.parse(nextContext), !result.position.range.isEmpty else {
                 break
             }
             children.append(result)
@@ -107,7 +119,8 @@ extension Expression {
         }
 
         if case .oneOrMore = flavor, children.count == 0 {
-            return nil
+            // TODO: Add reason for failure. Expected non-zero repeats.
+            throw ParsingError.generic(self, context)
         }
 
         let position = Result.Position(text, start, nextContext.cursor)
@@ -115,20 +128,23 @@ extension Expression {
     }
 
     private func parsePeek(with flavor: Expression.PeekFlavor, expression: Expression,
-                          context: Context) -> Result?
+                          context: Context) throws -> Result
     {
-        let result = expression.parse(context)
+        // TODO: replace this with deliberated errors.
+        let result = try? expression.parse(context)
         switch (result, flavor) {
         case (.some, .lookAhead), (.none, .not):
             let position = Result.Position(context.text, context.cursor, context.cursor)
             return Result(position: position)
         default:
-            return nil
+            throw ParsingError.generic(self, context)
         }
     }
 
-    private func parseOptional(with expression: Expression, context: Context) -> Result? {
-        if let result = expression.parse(context) {
+    private func parseOptional(with expression: Expression, context: Context) throws -> Result {
+        // TODO: inspect the error thrown instead of blindly igore it. This is eating all low level errors,
+        // which is not great. Define which kinds of errors are okay here, which ones are not.
+        if let result = try? expression.parse(context) {
             return Result(position: result.position, choice: 1, value: .raw([result]))
         } else {
             let position = Result.Position(context.text, context.cursor, context.cursor)
@@ -136,7 +152,7 @@ extension Expression {
         }
     }
 
-    private func parseRule(withName name: String, context: Context) -> Result? {
-        return context.grammar.parse(ruleName: name, context: context)
+    private func parseRule(withName name: String, context: Context) throws -> Result {
+        return try context.grammar.parse(ruleName: name, context: context)
     }
 }

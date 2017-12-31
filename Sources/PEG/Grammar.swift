@@ -1,3 +1,10 @@
+public enum ParserGenerationError: Error {
+    case tmp_genartionError
+    case tmp_parseError
+    case unknownRuleReference(String)
+    case unknownRoot(String)
+}
+
 public final class Grammar {
     let rootName: String
     private let rules: [String: Rule]
@@ -11,12 +18,14 @@ public final class Grammar {
         self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
     }
 
-    public init?(rootName: String, _ rules: String) {
+    public init(rootName: String, _ rules: String) throws {
         self.rootName = rootName
         let peg = Grammar(rootName: "Grammar", bootstrap())
-        guard let rules = peg.parse(rules)?.converted([Rule].self) else {
-            return nil
+        // TODO: properly implement parser generation error
+        guard let rules = try peg.parse(rules).converted([Rule].self) else {
+            throw ParserGenerationError.tmp_genartionError
         }
+
         self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
     }
 
@@ -29,13 +38,21 @@ public final class Grammar {
         self.rules[ruleName]?.expression.convert = convert
     }
 
-    public func parse(_ text: String) -> Result? {
+    public func parse(_ text: String) throws -> Result {
         let context = Context(text: text, position: 0, grammar: self)
-        return self.rules[self.rootName]?.parse(context)
+        guard let rootRule = self.rules[self.rootName] else {
+            throw ParserGenerationError.unknownRoot(self.rootName)
+        }
+
+        return try rootRule.parse(context)
     }
 
-    func parse(ruleName: String, context: Context) -> Result? {
-        return self.rules[ruleName]?.parse(context)
+    func parse(ruleName: String, context: Context) throws -> Result {
+        guard let rule = self.rules[ruleName] else {
+            throw ParserGenerationError.unknownRuleReference(ruleName)
+        }
+
+        return try rule.parse(context)
     }
 }
 

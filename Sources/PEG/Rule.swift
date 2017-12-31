@@ -7,7 +7,8 @@ struct Rule {
         self.expression = expression
     }
 
-    func parse(_ context: Context) -> Result? {
-        return self.expression.parse(context)
+    func parse(_ context: Context) throws -> Result {
+        // TODO: maybe say something about this location aka failure is from a rule?
+        return try self.expression.parse(context)
     }
 }
