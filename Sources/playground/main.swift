@@ -1,7 +1,7 @@
 import PEG
 
 let input = """
-    X <- "yy"
+    X <- &(("yy")+)
 """
 
 let grammar = try Grammar(rootName: "X", input)

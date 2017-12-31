@@ -1,8 +1,14 @@
+extension Expression: CustomStringConvertible {
+    public var description: String {
+        return self.dotTitle
+    }
+}
+
 extension Expression: DotRepresentable {
     var dotTitle: String {
         switch self {
         case .literal(let s, _):
-            return s
+            return "\"\(s)\""
         case .characterGroup(let flavor, let group, _):
             let prefix = flavor == .blacklist ? "[^" : "["
             return "\(prefix)\(group)]"

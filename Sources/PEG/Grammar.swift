@@ -43,7 +43,7 @@ public final class Grammar {
     }
 
     public func parse(_ text: String) throws -> Result {
-        let context = Context(text: text, position: 0, grammar: self)
+        let context = Context(text: text, position: 0, grammar: self, trace: [])
         guard let rootRule = self.rules[self.rootName] else {
             throw ParserGenerationError.unknownRoot(self.rootName)
         }

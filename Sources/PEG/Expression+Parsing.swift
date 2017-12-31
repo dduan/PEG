@@ -9,8 +9,10 @@ public enum ParsingError: Error {
 
 extension Expression {
     public func parse(_ context: Context) throws -> Result {
-        let rawResult = try self.parse(raw: context)
+        context.trace.append(self)
 
+        let rawResult = try self.parse(raw: context)
+        _ = context.trace.popLast()
         guard let convert = self.convert else {
             return rawResult
         }
@@ -74,7 +76,7 @@ extension Expression {
     private func parseSequence(with expressions: [Expression], context: Context) throws -> Result {
         let text = context.text
         let start = context.cursor
-        let nextContext = Context(text: text, position: start, grammar: context.grammar)
+        let nextContext = context.copy()
 
         var children = [Result]()
 
@@ -103,24 +105,32 @@ extension Expression {
     }
 
     private func parseRepeat(with flavor: Expression.RepeatFlavor, expression: Expression,
-                            context: Context) throws-> Result
+                             context: Context) throws-> Result
     {
         let text = context.text
         let start = context.cursor
-        let nextContext = Context(text: text, position: start, grammar: context.grammar)
+        let nextContext = context.copy()
         var children = [Result]()
+        var lastKnownError = ParsingError.generic(self, context)
         while true {
             // TODO: is this eating up too much errors? Should look inside the error and judge.
-            guard let result = try? expression.parse(nextContext), !result.position.range.isEmpty else {
+            do {
+                let result = try expression.parse(nextContext)
+                guard !result.position.range.isEmpty else {
+                    break
+                }
+                children.append(result)
+                nextContext.cursor = result.position.range.upperBound
+            } catch let error as ParsingError {
+                lastKnownError = error
                 break
             }
-            children.append(result)
-            nextContext.cursor = result.position.range.upperBound
         }
 
         if case .oneOrMore = flavor, children.count == 0 {
             // TODO: Add reason for failure. Expected non-zero repeats.
-            throw ParsingError.generic(self, context)
+            // fatalError("\(#function), \(self), \(context)\(lastKnownError)")
+            throw lastKnownError
         }
 
         let position = Result.Position(text, start, nextContext.cursor)
@@ -130,12 +140,20 @@ extension Expression {
     private func parsePeek(with flavor: Expression.PeekFlavor, expression: Expression,
                           context: Context) throws -> Result
     {
-        // TODO: replace this with deliberated errors.
-        let result = try? expression.parse(context)
-        switch (result, flavor) {
-        case (.some, .lookAhead), (.none, .not):
+        let error: Error?
+        do {
+            _ = try expression.parse(context)
+            error = nil
+        } catch let parseError {
+            error = parseError
+        }
+
+        switch (error, flavor) {
+        case (.none, .lookAhead), (.some, .not):
             let position = Result.Position(context.text, context.cursor, context.cursor)
             return Result(position: position)
+        case (.some(let error), .lookAhead):
+            throw error
         default:
             throw ParsingError.generic(self, context)
         }
