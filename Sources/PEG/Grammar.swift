@@ -1,7 +1,7 @@
 public enum ParserGenerationError: Error {
-    case tmp_genartionError
-    case tmp_parseError
-    case unknownRuleReference(String)
+    case generationFailed
+    case ruleParsingFailed(ParsingError)
+    case unknownRuleReference(String, Context)
     case unknownRoot(String)
 }
 
@@ -21,12 +21,16 @@ public final class Grammar {
     public init(rootName: String, _ rules: String) throws {
         self.rootName = rootName
         let peg = Grammar(rootName: "Grammar", bootstrap())
-        // TODO: properly implement parser generation error
-        guard let rules = try peg.parse(rules).converted([Rule].self) else {
-            throw ParserGenerationError.tmp_genartionError
-        }
+        do {
+            let result = try peg.parse(rules)
+            guard let rules = result.converted([Rule].self) else {
+                throw ParserGenerationError.generationFailed
+            }
 
-        self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
+            self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
+        } catch let error as ParsingError {
+            throw ParserGenerationError.ruleParsingFailed(error)
+        }
     }
 
     init(rootName: String, _ rules: [Rule]) {
@@ -49,7 +53,7 @@ public final class Grammar {
 
     func parse(ruleName: String, context: Context) throws -> Result {
         guard let rule = self.rules[ruleName] else {
-            throw ParserGenerationError.unknownRuleReference(ruleName)
+            throw ParserGenerationError.unknownRuleReference(ruleName, context)
         }
 
         return try rule.parse(context)
