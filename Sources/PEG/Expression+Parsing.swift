@@ -88,15 +88,17 @@ extension Expression {
     }
 
     private func parseOneOf(with expressions: [Expression], context: Context) throws -> Result {
+        var subexpressionErrors = [ParsingError]()
         for (index, expression) in expressions.enumerated() {
-            // TODO: Eating too much errors, inspect inside.
-            if let result = try? expression.parse(context) {
+            do {
+                let result = try expression.parse(context)
                 return result.with(choice: index)
+            } catch let error as ParsingError {
+                subexpressionErrors.append(error)
             }
         }
 
-        // TODO: non of the alternative worked, throw an error with this information
-        throw ParsingError(expression: self, context: context, children: [])
+        throw ParsingError(expression: self, context: context, children: subexpressionErrors)
     }
 
     private func parseRepeat(with flavor: Expression.RepeatFlavor, expression: Expression,
