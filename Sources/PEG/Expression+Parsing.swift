@@ -2,11 +2,6 @@
 // instead of blindly parse forward, even tho failure is acceptable. AKA: figure out specifically which type
 // of failures are expected.
 
-public enum ParsingError: Error {
-    case generic(Expression, Context)
-    case conversionFailure(Expression, Context)
-}
-
 extension Expression {
     public func parse(_ context: Context) throws -> Result {
         context.trace.append(self)
@@ -50,7 +45,7 @@ extension Expression {
             return Result(position: position)
         }
         // TODO: Add detalis about literal parsing failure
-        throw ParsingError.generic(self, context)
+        throw ParsingError(expression: self, context: context, children: [])
     }
 
     private func parseGroup(with flavor: Expression.CharacterGroupFlavor, group: CharacterGroup,
@@ -58,7 +53,7 @@ extension Expression {
     {
         guard let character = context.text.dropFirst(context.cursor).first else {
             // TODO: details about reaching end of input for groups
-            throw  ParsingError.generic(self, context)
+            throw ParsingError(expression: self, context: context, children: [])
         }
 
         let isInGroup = group.contains(character)
@@ -69,7 +64,7 @@ extension Expression {
             return Result(position: position)
         default:
             // TODO: add details about group parsing failure?
-            throw  ParsingError.generic(self, context)
+            throw ParsingError(expression: self, context: context, children: [])
         }
     }
 
@@ -101,7 +96,7 @@ extension Expression {
         }
 
         // TODO: non of the alternative worked, throw an error with this information
-        throw ParsingError.generic(self, context)
+        throw ParsingError(expression: self, context: context, children: [])
     }
 
     private func parseRepeat(with flavor: Expression.RepeatFlavor, expression: Expression,
@@ -111,9 +106,8 @@ extension Expression {
         let start = context.cursor
         let nextContext = context.copy()
         var children = [Result]()
-        var lastKnownError = ParsingError.generic(self, context)
+        var lastKnownError = ParsingError(expression: self, context: context, children: [])
         while true {
-            // TODO: is this eating up too much errors? Should look inside the error and judge.
             do {
                 let result = try expression.parse(nextContext)
                 guard !result.position.range.isEmpty else {
@@ -128,8 +122,8 @@ extension Expression {
         }
 
         if case .oneOrMore = flavor, children.count == 0 {
-            // TODO: Add reason for failure. Expected non-zero repeats.
-            // fatalError("\(#function), \(self), \(context)\(lastKnownError)")
+            // context contained in this error should have trace that includes this parser as parent. This is
+            // enough information to infer what went wrong.
             throw lastKnownError
         }
 
@@ -155,16 +149,15 @@ extension Expression {
         case (.some(let error), .lookAhead):
             throw error
         default:
-            throw ParsingError.generic(self, context)
+            throw ParsingError(expression: self, context: context, children: [])
         }
     }
 
     private func parseOptional(with expression: Expression, context: Context) throws -> Result {
-        // TODO: inspect the error thrown instead of blindly igore it. This is eating all low level errors,
-        // which is not great. Define which kinds of errors are okay here, which ones are not.
-        if let result = try? expression.parse(context) {
-            return Result(position: result.position, choice: 1, value: .raw([result]))
-        } else {
+        do {
+            let result = try expression.parse(context)
+            return Result(position: result.position.copy(), choice: 1, value: .raw([result]))
+        } catch {
             let position = Result.Position(context.text, context.cursor, context.cursor)
             return Result(position: position, choice: 0)
         }

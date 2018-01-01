@@ -8,6 +8,11 @@ public struct Result {
             self.range = start..<end
         }
 
+        init(_ text: String, _ range: Range<Int>) {
+            self.text = text
+            self.range = range
+        }
+
         var matchedText: String {
             return String(
                 self.text
@@ -18,6 +23,10 @@ public struct Result {
 
         var firstMatchedCharacter: Character? {
             return self.text.dropFirst(self.range.lowerBound).first
+        }
+
+        func copy() -> Position {
+            return Position(self.text, self.range)
         }
     }
 
