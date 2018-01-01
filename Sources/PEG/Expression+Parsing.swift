@@ -1,7 +1,3 @@
-// TODO: whenever a try? is used in parsing, we should inspect the error thrown from subexpression parsing
-// instead of blindly parse forward, even tho failure is acceptable. AKA: figure out specifically which type
-// of failures are expected.
-
 extension Expression {
     public func parse(_ context: Context) throws -> Result {
         context.trace.append(self)
@@ -12,7 +8,7 @@ extension Expression {
             return rawResult
         }
 
-        // TODO: throw error
+        // TODO: throw user-supplied error aka make convert throw
         return rawResult.with(value: .converted(convert(rawResult)))
     }
 
@@ -44,16 +40,15 @@ extension Expression {
             let position = Result.Position(text, start, start + literal.count)
             return Result(position: position)
         }
-        // TODO: Add detalis about literal parsing failure
-        throw ParsingError(expression: self, context: context, children: [])
+
+        throw ParsingError(expression: self, context: context)
     }
 
     private func parseGroup(with flavor: Expression.CharacterGroupFlavor, group: CharacterGroup,
                             context: Context) throws -> Result
     {
         guard let character = context.text.dropFirst(context.cursor).first else {
-            // TODO: details about reaching end of input for groups
-            throw ParsingError(expression: self, context: context, children: [])
+            throw ParsingError(expression: self, context: context, reason: .inputTooShort)
         }
 
         let isInGroup = group.contains(character)
@@ -63,8 +58,7 @@ extension Expression {
             let position = Result.Position(context.text, context.cursor, context.cursor + 1)
             return Result(position: position)
         default:
-            // TODO: add details about group parsing failure?
-            throw ParsingError(expression: self, context: context, children: [])
+            throw ParsingError(expression: self, context: context)
         }
     }
 
@@ -76,7 +70,6 @@ extension Expression {
         var children = [Result]()
 
         for expression in expressions {
-            // TODO: details about sequence in error? or is subexpression error enough?
             let result = try expression.parse(nextContext)
             let resultRange = result.position.range
             nextContext.cursor += resultRange.upperBound - resultRange.lowerBound
@@ -108,7 +101,7 @@ extension Expression {
         let start = context.cursor
         let nextContext = context.copy()
         var children = [Result]()
-        var lastKnownError = ParsingError(expression: self, context: context, children: [])
+        var lastKnownError = ParsingError(expression: self, context: context)
         while true {
             do {
                 let result = try expression.parse(nextContext)
@@ -124,9 +117,7 @@ extension Expression {
         }
 
         if case .oneOrMore = flavor, children.count == 0 {
-            // context contained in this error should have trace that includes this parser as parent. This is
-            // enough information to infer what went wrong.
-            throw lastKnownError
+            throw ParsingError(expression: self, context: context, children: [lastKnownError])
         }
 
         let position = Result.Position(text, start, nextContext.cursor)
@@ -151,7 +142,7 @@ extension Expression {
         case (.some(let error), .lookAhead):
             throw error
         default:
-            throw ParsingError(expression: self, context: context, children: [])
+            throw ParsingError(expression: self, context: context)
         }
     }
 
