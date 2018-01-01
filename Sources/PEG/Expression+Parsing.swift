@@ -4,12 +4,17 @@ extension Expression {
 
         let rawResult = try self.parse(raw: context)
         _ = context.trace.popLast()
+
         guard let convert = self.convert else {
             return rawResult
         }
 
-        // TODO: throw user-supplied error aka make convert throw
-        return rawResult.with(value: .converted(convert(rawResult)))
+        do {
+            let converted = try convert(rawResult)
+            return rawResult.with(value: .converted(converted))
+        } catch let error {
+            throw ParsingError(expression: self, context: context, reason: .resultConversionFailure(error))
+        }
     }
 
     private func parse(raw context: Context) throws -> Result {

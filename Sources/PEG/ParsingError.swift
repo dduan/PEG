@@ -2,6 +2,7 @@ public struct ParsingError: Error {
     public enum Reason {
         case inputMismatch
         case inputTooShort
+        case resultConversionFailure(Error)
     }
 
     let expression: Expression
