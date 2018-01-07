@@ -2,7 +2,7 @@ import XCTest
 import PEG
 
 final class ArithmeticParserGenerationTests: XCTestCase {
-    func testParserGeneration() {
+    func testParserGeneration() throws {
         let input = """
             Arithmetic <- Factor AddExpr*
             AddExpr    <- ('+' / '-') Factor
@@ -19,7 +19,7 @@ final class ArithmeticParserGenerationTests: XCTestCase {
         let kPrimary    = "Primary"
         let kNumber     = "Number"
 
-        let grammar = Grammar(rootName: kArithmetic, input)!
+        let grammar = try Grammar(rootName: kArithmetic, input)
 
         // Number     <- [0-9]+
         grammar.convert(kNumber) { Double($0.text)! }
@@ -70,9 +70,9 @@ final class ArithmeticParserGenerationTests: XCTestCase {
         }
 
 
-        let result = grammar.parse("(96+1)/2-100")
+        let result = try grammar.parse("(96+1)/2-100")
 
-        let resultValue = result?.converted(Double.self)
+        let resultValue = result.converted(Double.self)
         XCTAssertNotNil(resultValue)
 
         if let value = resultValue {

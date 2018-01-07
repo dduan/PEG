@@ -95,7 +95,8 @@ final class ArithmeticParserTests: XCTestCase {
             ]
         )
 
-        let result = grammar.parse("(96+1)/2-100")
+        let result = try? grammar.parse("(96+1)/2-100")
+        XCTAssertNotNil(result)
 
         let resultValue = result?.converted(Double.self)
         XCTAssertNotNil(resultValue)
