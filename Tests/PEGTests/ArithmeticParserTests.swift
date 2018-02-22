@@ -1,5 +1,5 @@
 import XCTest
-import PEG
+@testable import PEG
 
 final class ArithmeticParserTests: XCTestCase {
     func testParser() {
