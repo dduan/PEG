@@ -49,6 +49,17 @@ final class LeftRecursionTests: XCTestCase {
 
     func testLeftRecursionInSequenceAndWrappedInOptional() {
         assureInfiniteRecursion("start", "start <- '' start?")
+        assureNoInfiniteRecursion("start", "start <- 'a' start?")
+    }
+
+    func testLeftRecursionInSequenceAndWrappedInZeroOrMore() {
+        assureInfiniteRecursion("start", "start <- '' start*")
+        assureNoInfiniteRecursion("start", "start <- 'a' start*")
+    }
+
+    func testLeftRecursionInSequenceAndWrappedInOneOrMore() {
+        assureInfiniteRecursion("start", "start <- '' start+")
+        assureNoInfiniteRecursion("start", "start <- 'a' start+")
     }
 
     func testLeftRecursionInSequenceWithOneOf() {

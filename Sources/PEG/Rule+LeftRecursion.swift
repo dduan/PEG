@@ -33,6 +33,12 @@ extension Rule {
                     try validate(subExpression)
                 }
 
+            case .optional(let expression, _):
+                try validate(expression)
+
+            case .repeat(_, let expression, _):
+                try validate(expression)
+
             default:
                 return
             }
