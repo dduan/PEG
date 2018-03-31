@@ -1,11 +1,8 @@
-import PEG
-
-let input = """
     JSON     <- Space? (Object / Array / String / True / False / Null / Number) Space?
     Object   <- "{" (String ":" JSON ("," String ":" JSON)* / Space?) "}"
     Array    <- "[" (JSON ("," JSON)* / Space?) "]"
     String   <- Space? '"' ([^"] / Escape)* '"' Space?
-    Escape   <- "\\\\" (["/\\\\bfnrt] / Unicode)
+    Escape   <- "\\" (["/\\bfnrt] / Unicode)
     Unicode  <- "u" HexDigit HexDigit HexDigit HexDigit
     HexDigit <- [0-9A-Fa-f]
     True     <- "true"
@@ -16,8 +13,3 @@ let input = """
     Fraction <- "." [0-9]+
     Exponent <- ("e" / "E") ("+" / "-")? [0-9]+
     Space    <- [ \t\r\n]+
-"""
-
-let grammar = try Grammar(rootName: "JSON", input)
-let result = try grammar.parse("{\"a\" : [1, \t2, 23e2]}")
-print(result)
