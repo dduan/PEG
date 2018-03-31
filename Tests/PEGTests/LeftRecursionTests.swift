@@ -35,6 +35,16 @@ final class LeftRecursionTests: XCTestCase {
         assureInfiniteRecursion("start", "start <- '' '' '' start")
     }
 
+    func testEncounteredButNonRecursive() {
+        let test =
+            """
+            start  <- space? middle space?
+            middle <- space? "a"
+            space  <- [ \t]
+            """
+        assureNoInfiniteRecursion("start", test)
+    }
+
     func testLeftRecursionInNonEmptySequence() {
         let tests = [
             "start <- 'a' '' '' start",

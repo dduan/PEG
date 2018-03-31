@@ -15,6 +15,11 @@ final class ExpressionTests: XCTestCase {
         XCTAssertThrowsError(try literal.parse(ctx("aba")))
     }
 
+    func testBackslashLiteral() throws {
+        let literal = s("\\")
+        XCTAssertEqual(try literal.parse(ctx("\\")).text, "\\")
+    }
+
     let group = c(CharacterGroup(["d"..."g", "p"..."p"]))
     func testGroup() throws {
         XCTAssertEqual(try group.parse(ctx("e")).text, "e")

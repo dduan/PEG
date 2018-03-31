@@ -18,6 +18,7 @@ extension Rule {
 
                 encounteredRules.append(name)
                 try validate(ruleExpression)
+                encounteredRules.removeLast()
 
             case .sequence(let subExpressions, _):
                 for subExpression in subExpressions {
