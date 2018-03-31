@@ -4,27 +4,27 @@ public indirect enum Expression {
         public init() {}
     }
 
-    public enum RepeatFlavor {
+    public enum RepeatKind {
         case zeroOrMore
         case oneOrMore
     }
 
-    public enum PeekFlavor {
-        case lookAhead
+    public enum PredicateKind {
+        case and
         case not
     }
 
-    public enum CharacterGroupFlavor {
+    public enum CharacterGroupKind {
         case whitelist
         case blacklist
     }
 
     case literal(String, Properties)
-    case characterGroup(CharacterGroupFlavor, CharacterGroup, Properties)
+    case characterGroup(CharacterGroupKind, CharacterGroup, Properties)
     case sequence([Expression], Properties)
     case oneOf([Expression], Properties)
-    case `repeat`(RepeatFlavor, Expression, Properties)
-    case peek(PeekFlavor, Expression, Properties)
+    case `repeat`(RepeatKind, Expression, Properties)
+    case predicate(PredicateKind, Expression, Properties)
     case `optional`(Expression, Properties)
     case rule(String, Properties)
 
@@ -35,7 +35,7 @@ public indirect enum Expression {
         case .sequence(_,          let p): return p
         case .oneOf(_,             let p): return p
         case .repeat(_, _,         let p): return p
-        case .peek(_, _,           let p): return p
+        case .predicate(_, _,           let p): return p
         case .optional(_,          let p): return p
         case .rule(_,              let p): return p
         }

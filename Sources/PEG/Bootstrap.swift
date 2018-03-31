@@ -40,11 +40,11 @@ private func range(fromRange result: Result) -> ClosedRange<Character> {
 
 // Class      <- ’[’ '^'? (!’]’ Range)* ’]’ Spacing
 private func convertCharacterClass(result: Result) -> Expression {
-    let flavor: Expression.CharacterGroupFlavor = result[1].choice == 0 ? .whitelist : .blacklist
+    let kind: Expression.CharacterGroupKind = result[1].choice == 0 ? .whitelist : .blacklist
     let ranges = result[2]
         .children
         .map { range(fromRange: $0[1]) }
-    return .characterGroup(flavor, CharacterGroup(ranges), Expression.Properties())
+    return .characterGroup(kind, CharacterGroup(ranges), Expression.Properties())
 }
 
 // IdentStart <- [a-zA-Z_]
@@ -127,7 +127,7 @@ private func convertPrefix(result: Result) -> Expression {
         fatalError("expected expression from prefix parse result")
     }
 
-    enum Modifier: Int { case lookAhead = 0; case not = 1 }
+    enum Modifier: Int { case and = 0; case not = 1 }
     if result[0].choice == 0 {
         return suffixExpression
     } else if result[0].choice == 1 {
@@ -136,7 +136,7 @@ private func convertPrefix(result: Result) -> Expression {
         }
 
         switch modifier {
-        case .lookAhead:
+        case .and:
             return ahead(suffixExpression)
         case .not:
             return not(suffixExpression)

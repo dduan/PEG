@@ -21,16 +21,16 @@ extension Expression {
         switch self {
         case .literal(let literal, _):
             return try self.parseLiteral(with: literal, context: context)
-        case .characterGroup(let flavor, let group, _):
-            return try self.parseGroup(with: flavor, group: group, context: context)
+        case .characterGroup(let kind, let group, _):
+            return try self.parseGroup(with: kind, group: group, context: context)
         case .sequence(let subexpressions, _):
             return try self.parseSequence(with: subexpressions, context: context)
         case .oneOf(let subexpressions, _):
             return try self.parseOneOf(with: subexpressions, context: context)
-        case .repeat(let flavor, let expression, _):
-            return try self.parseRepeat(with: flavor, expression: expression, context: context)
-        case .peek(let flavor, let expression, _):
-            return try self.parsePeek(with: flavor, expression: expression, context: context)
+        case .repeat(let kind, let expression, _):
+            return try self.parseRepeat(with: kind, expression: expression, context: context)
+        case .predicate(let kind, let expression, _):
+            return try self.parsePredicate(with: kind, expression: expression, context: context)
         case .optional(let expression, _):
             return try self.parseOptional(with: expression, context: context)
         case .rule(let name, _):
@@ -49,7 +49,7 @@ extension Expression {
         throw ParsingError(expression: self, context: context)
     }
 
-    private func parseGroup(with flavor: Expression.CharacterGroupFlavor, group: CharacterGroup,
+    private func parseGroup(with kind: Expression.CharacterGroupKind, group: CharacterGroup,
                             context: Context) throws -> Result
     {
         guard let character = context.text.dropFirst(context.cursor).first else {
@@ -58,7 +58,7 @@ extension Expression {
 
         let isInGroup = group.contains(character)
 
-        switch (isInGroup, flavor) {
+        switch (isInGroup, kind) {
         case (true, .whitelist), (false, .blacklist):
             let position = Result.Position(context.text, context.cursor, context.cursor + 1)
             return Result(position: position)
@@ -99,7 +99,7 @@ extension Expression {
         throw ParsingError(expression: self, context: context, children: subexpressionErrors)
     }
 
-    private func parseRepeat(with flavor: Expression.RepeatFlavor, expression: Expression,
+    private func parseRepeat(with kind: Expression.RepeatKind, expression: Expression,
                              context: Context) throws-> Result
     {
         let text = context.text
@@ -121,7 +121,7 @@ extension Expression {
             }
         }
 
-        if case .oneOrMore = flavor, children.count == 0 {
+        if case .oneOrMore = kind, children.count == 0 {
             throw ParsingError(expression: self, context: context, children: [lastKnownError])
         }
 
@@ -129,8 +129,8 @@ extension Expression {
         return Result(position: position, value: .raw(children))
     }
 
-    private func parsePeek(with flavor: Expression.PeekFlavor, expression: Expression,
-                          context: Context) throws -> Result
+    private func parsePredicate(with kind: Expression.PredicateKind, expression: Expression,
+                                context: Context) throws -> Result
     {
         let error: Error?
         do {
@@ -140,11 +140,11 @@ extension Expression {
             error = parseError
         }
 
-        switch (error, flavor) {
-        case (.none, .lookAhead), (.some, .not):
+        switch (error, kind) {
+        case (.none, .and), (.some, .not):
             let position = Result.Position(context.text, context.cursor, context.cursor)
             return Result(position: position)
-        case (.some(let error), .lookAhead):
+        case (.some(let error), .and):
             throw error
         default:
             throw ParsingError(expression: self, context: context)

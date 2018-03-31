@@ -31,7 +31,7 @@ extension Expression {
         case .repeat(.zeroOrMore, _, _):
             return false
 
-        case .peek, .optional:
+        case .predicate, .optional:
             return false
 
         case .rule(let name, _):

@@ -55,11 +55,11 @@ public func one(_ expression: Expression) -> Expression {
 }
 
 public func ahead(_ expression: Expression) -> Expression {
-    return .peek(.lookAhead, expression, Expression.Properties())
+    return .predicate(.and, expression, Expression.Properties())
 }
 
 public func not(_ expression: Expression) -> Expression {
-    return .peek(.not, expression, Expression.Properties())
+    return .predicate(.not, expression, Expression.Properties())
 }
 
 public func maybe(_ expression: Expression) -> Expression {

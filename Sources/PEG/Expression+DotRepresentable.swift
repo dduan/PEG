@@ -9,8 +9,8 @@ extension Expression: DotRepresentable {
         switch self {
         case .literal(let s, _):
             return "\"\(s)\""
-        case .characterGroup(let flavor, let group, _):
-            let prefix = flavor == .blacklist ? "[^" : "["
+        case .characterGroup(let kind, let group, _):
+            let prefix = kind == .blacklist ? "[^" : "["
             return "\(prefix)\(group)]"
         case .rule(let name, _):
             return "*\(name)"
@@ -18,10 +18,10 @@ extension Expression: DotRepresentable {
             return "[]"
         case .oneOf:
             return "/"
-        case .repeat(let flavor, _, _):
-            return flavor == .zeroOrMore ? "*" : "+"
-        case .peek(let flavor, _, _):
-            return flavor == .lookAhead ? "&" : "!"
+        case .repeat(let kind, _, _):
+            return kind == .zeroOrMore ? "*" : "+"
+        case .predicate(let kind, _, _):
+            return kind == .and ? "&" : "!"
         case .optional:
             return "?"
         }
@@ -37,7 +37,7 @@ extension Expression: DotRepresentable {
             return children
         case .repeat(_, let child, _):
             return [child]
-        case .peek(_, let child, _):
+        case .predicate(_, let child, _):
             return [child]
         case .optional(let child, _):
             return [child]

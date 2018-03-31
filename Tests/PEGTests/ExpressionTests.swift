@@ -78,7 +78,7 @@ final class ExpressionTests: XCTestCase {
         XCTAssertEqual(result.children[3].choice, 0)
     }
 
-    func testPeekLookAhead() throws {
+    func testPredicateLookAhead() throws {
         let sequence = seq(group, literal, group)
         let aheadExpr = ahead(sequence)
         XCTAssertNoThrow(try aheadExpr.parse(ctx("daagxxxxx")))
@@ -86,7 +86,7 @@ final class ExpressionTests: XCTestCase {
         XCTAssertThrowsError(try aheadExpr.parse(ctx("xdaagxxxxx")))
     }
 
-    func testPeekNot() throws {
+    func testPredicateNot() throws {
         let sequence = seq(group, literal, group)
         let notExpr = not(sequence)
         XCTAssertThrowsError(try notExpr.parse(ctx("daagxxxxx")))
