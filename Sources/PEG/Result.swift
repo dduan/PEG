@@ -1,4 +1,4 @@
-public struct Result {
+public struct Node {
     public final class Position {
         let text: String
         let range: Range<Int>
@@ -31,7 +31,7 @@ public struct Result {
     }
 
     public enum Value {
-        case raw([Result])
+        case raw([Node])
         case converted(Any)
     }
 
@@ -39,14 +39,14 @@ public struct Result {
     public let position: Position
     public let value: Value
 
-    public var children: [Result] {
+    public var children: [Node] {
         switch self.value {
         case .raw(let children): return children
         case .converted: return []
         }
     }
 
-    public subscript(index: Int) -> Result {
+    public subscript(index: Int) -> Node {
         get {
             return self.children[index]
         }
@@ -90,12 +90,12 @@ public struct Result {
         }
     }
 
-    func with(value: Value) -> Result {
-        return Result(position: self.position, choice: self.choice, value: value)
+    func with(value: Value) -> Node {
+        return Node(position: self.position, choice: self.choice, value: value)
     }
 }
 
-extension Result: CustomStringConvertible {
+extension Node: CustomStringConvertible {
     public var description: String {
         if self.children.isEmpty {
             if case .converted(let customValue) = self.value {

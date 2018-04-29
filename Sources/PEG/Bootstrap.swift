@@ -1,16 +1,16 @@
 // TODO: convert force-unwraps for expression generation to assertions or something.
-private func character(fromAnyOrClass result: Result) -> Character {
-    guard let character = result.firstCharacter else {
-        fatalError("expect character class to have a character in result")
+private func character(fromAnyOrClass node: Node) -> Character {
+    guard let character = node.firstCharacter else {
+        fatalError("expect character class to have a character in node")
     }
     return character
 }
 
 // Char       <- '\\' [nrt'"\\[\\]\\] / !'\\' .
-private func character(fromChar char: Result) -> Character {
+private func character(fromChar char: Node) -> Character {
     enum Choice: Int { case escaped = 0; case normal = 1 }
     guard let choice = Choice(rawValue: char.choice) else {
-        fatalError("expected choice from Range result")
+        fatalError("expected choice from Range node")
     }
 
     switch (choice, char[0][1].firstCharacter) {
@@ -23,8 +23,8 @@ private func character(fromChar char: Result) -> Character {
 }
 
 // Literal    <- [’] (![’] Char)* [’] Spacing / ["] (!["] Char)* ["] Spacing
-private func convertLiteral(result: Result) -> Expression {
-    let characters = result[0][1]
+private func convertLiteral(node: Node) -> Expression {
+    let characters = node[0][1]
         .children
         .map { character(fromAnyOrClass: $0[1][0]) }
 
@@ -32,27 +32,27 @@ private func convertLiteral(result: Result) -> Expression {
 }
 
 // Range      <- Char ’-’ Char / Char
-private func range(fromRange result: Result) -> ClosedRange<Character> {
+private func range(fromRange node: Node) -> ClosedRange<Character> {
     enum Choice: Int { case range = 0; case single = 1 }
-    guard let choice = Choice(rawValue: result.choice) else {
-        fatalError("expected choice from Range result")
+    guard let choice = Choice(rawValue: node.choice) else {
+        fatalError("expected choice from Range node")
     }
 
     switch choice {
     case .range:
-        let first = character(fromChar: result[0][0])
-        let second = character(fromChar: result[0][2])
+        let first = character(fromChar: node[0][0])
+        let second = character(fromChar: node[0][2])
         return first...second
     case .single:
-        let char = character(fromChar: result[0])
+        let char = character(fromChar: node[0])
         return char...char
     }
 }
 
 // Class      <- ’[’ '^'? (!’]’ Range)* ’]’ Spacing
-private func convertCharacterClass(result: Result) -> Expression {
-    let kind: Expression.CharacterGroupKind = result[1].choice == 0 ? .whitelist : .blacklist
-    let ranges = result[2]
+private func convertCharacterClass(node: Node) -> Expression {
+    let kind: Expression.CharacterGroupKind = node[1].choice == 0 ? .whitelist : .blacklist
+    let ranges = node[2]
         .children
         .map { range(fromRange: $0[1]) }
     return .characterGroup(kind, CharacterGroup(ranges), Expression.Properties())
@@ -61,25 +61,25 @@ private func convertCharacterClass(result: Result) -> Expression {
 // IdentStart <- [a-zA-Z_]
 // IdentCont  <- IdentStart / [0-9]
 // Identifier <- IdentStart IdentCont* Spacing
-private func convertIdentifier(result: Result) -> String {
-    let groupResults = [result[0]] + result[1].children
-    return String(groupResults.map(character(fromAnyOrClass:)))
+private func convertIdentifier(node: Node) -> String {
+    let groupNodes = [node[0]] + node[1].children
+    return String(groupNodes.map(character(fromAnyOrClass:)))
 }
 
 // Sequence   <- Prefix*
-private func convertSequence(result: Result) -> Expression {
-    if result.children.count == 1 {
-        return result[0].converted()!
+private func convertSequence(node: Node) -> Expression {
+    if node.children.count == 1 {
+        return node[0].converted()!
     }
 
-    return seq(result.children.map { $0.converted(Expression.self)! })
+    return seq(node.children.map { $0.converted(Expression.self)! })
 }
 
 // .
 private let any = not(CharacterGroup([]))
 
 // Primary    <- Identifier !LEFTARROW / OPEN Expression CLOSE / Literal / Class / DOT
-private func convertPrimary(result: Result) -> Expression {
+private func convertPrimary(node: Node) -> Expression {
     enum Choice: Int {
         case reference  = 0
         case expression = 1
@@ -88,34 +88,34 @@ private func convertPrimary(result: Result) -> Expression {
         case dot        = 4
     }
 
-    guard let choice = Choice(rawValue: result.choice) else {
-        fatalError("expected choice 0-5 from primary expression result")
+    guard let choice = Choice(rawValue: node.choice) else {
+        fatalError("expected choice 0-5 from primary expression node")
     }
 
     switch choice {
     case .reference:
-        return ref(result[0][0].converted()!)
+        return ref(node[0][0].converted()!)
     case .expression:
-        return result[0][1].converted()!
+        return node[0][1].converted()!
     case .literal, .class:
-        return result[0].converted()!
+        return node[0].converted()!
     case .dot:
         return any
     }
 }
 
 // Suffix     <- Primary (QUESTION / STAR / PLUS)?
-private func convertSuffix(result: Result) -> Expression {
-    guard let primaryExpression = result[0].converted(Expression.self) else {
-        fatalError("expected expression from primary parse result")
+private func convertSuffix(node: Node) -> Expression {
+    guard let primaryExpression = node[0].converted(Expression.self) else {
+        fatalError("expected expression from primary parse node")
     }
 
     enum Modifier: Int { case maybe = 0; case zeroOrMore = 1; case oneOrMore = 2 }
 
-    if result[1].choice == 0 {
+    if node[1].choice == 0 {
         return primaryExpression
-    } else if result[1].choice == 1 {
-        guard let modifier = Modifier(rawValue: result[1][0].choice) else {
+    } else if node[1].choice == 1 {
+        guard let modifier = Modifier(rawValue: node[1][0].choice) else {
             fatalError("expected modifier from some second half of suffix expression")
         }
 
@@ -133,16 +133,16 @@ private func convertSuffix(result: Result) -> Expression {
 }
 
 // Prefix     <- (AND / NOT)? Suffix
-private func convertPrefix(result: Result) -> Expression {
-    guard let suffixExpression = result[1].converted(Expression.self) else {
-        fatalError("expected expression from prefix parse result")
+private func convertPrefix(node: Node) -> Expression {
+    guard let suffixExpression = node[1].converted(Expression.self) else {
+        fatalError("expected expression from prefix parse node")
     }
 
     enum Modifier: Int { case and = 0; case not = 1 }
-    if result[0].choice == 0 {
+    if node[0].choice == 0 {
         return suffixExpression
-    } else if result[0].choice == 1 {
-        guard let modifier = Modifier(rawValue: result[0][0].choice) else {
+    } else if node[0].choice == 1 {
+        guard let modifier = Modifier(rawValue: node[0][0].choice) else {
             fatalError("expected modifier from some second half of prefix expression")
         }
 
@@ -158,16 +158,16 @@ private func convertPrefix(result: Result) -> Expression {
 }
 
 // Expression <- Sequence (SLASH Sequence)*
-private func convertExpression(result: Result) -> Expression {
-    guard let firstExpression = result[0].converted(Expression.self) else {
-        fatalError("Expected at least one expression in Expression result")
+private func convertExpression(node: Node) -> Expression {
+    guard let firstExpression = node[0].converted(Expression.self) else {
+        fatalError("Expected at least one expression in Expression node")
     }
 
-    if result[1].children.isEmpty {
+    if node[1].children.isEmpty {
         return firstExpression
     }
 
-    let otherExpressions = result[1]
+    let otherExpressions = node[1]
         .children // SLASH Sequence
         .map { $0[1].converted(Expression.self)! }
 
@@ -175,15 +175,15 @@ private func convertExpression(result: Result) -> Expression {
 }
 
 // Definition <- Identifier LEFTARROW Expression
-private func convertDefinition(result: Result) -> Rule {
-    let name = result[0].converted(String.self)!
-    let expression = result[2].converted(Expression.self)!
+private func convertDefinition(node: Node) -> Rule {
+    let name = node[0].converted(String.self)!
+    let expression = node[2].converted(Expression.self)!
     return Rule(name, expression)
 }
 
 // Grammar    <- Spacing Definition+ EndOfFile
-private func convertGrammar(result: Result) -> [Rule] {
-    return result[1]
+private func convertGrammar(node: Node) -> [Rule] {
+    return node[1]
         .children
         .map { $0.converted(Rule.self)! }
 }

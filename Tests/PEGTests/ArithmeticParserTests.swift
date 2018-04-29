@@ -40,17 +40,17 @@ final class ArithmeticParserTests: XCTestCase {
         numberExpr.convert  = { Double($0.text)! }
 
         // Primary    <- '(' Arithmetic ')' / Number
-        primaryExpr.convert = { result in
-            if result.choice == 1 {
-                return result[0].converted(Double.self)!
+        primaryExpr.convert = { node in
+            if node.choice == 1 {
+                return node[0].converted(Double.self)!
             }
-            return result[0][1].converted(Double.self)!
+            return node[0][1].converted(Double.self)!
         }
 
         // MulExpr    <- ('*' / '/') Primary
-        mulExpr.convert = { result in
-            var n: Double = result.children[1].converted()!
-            let op = result.children[0]
+        mulExpr.convert = { node in
+            var n: Double = node.children[1].converted()!
+            let op = node.children[0]
             if op.choice == 1 {
                 n = 1 / n
             }
@@ -58,17 +58,17 @@ final class ArithmeticParserTests: XCTestCase {
         }
 
         // Factor     <- Primary MulExpr*
-        factorExpr.convert = { result in
-            let n: Double = result.children[0].converted()!
-            return result.children[1]
+        factorExpr.convert = { node in
+            let n: Double = node.children[0].converted()!
+            return node.children[1]
                 .children
                 .reduce(n) { $0 * $1.converted()! }
         }
 
         // AddExpr    <- ('+' / '-') Factor
-        addExpr.convert = { result in
-            var n: Double = result.children[1].converted()!
-            let op = result.children[0]
+        addExpr.convert = { node in
+            var n: Double = node.children[1].converted()!
+            let op = node.children[0]
             if op.choice == 1 {
                 n = -n
             }
@@ -76,9 +76,9 @@ final class ArithmeticParserTests: XCTestCase {
         }
 
         // Arithmetic <- Factor AddExpr*
-        arithmeticExpr.convert = { result in
-            let n: Double = result.children[0].converted() ?? 0
-            return result.children[1]
+        arithmeticExpr.convert = { node in
+            let n: Double = node.children[0].converted() ?? 0
+            return node.children[1]
                 .children
                 .reduce(n) { $0 + $1.converted()! }
         }
@@ -95,13 +95,13 @@ final class ArithmeticParserTests: XCTestCase {
             ]
         )
 
-        let result = try? grammar.parse("(96+1)/2-100")
-        XCTAssertNotNil(result)
+        let node = try? grammar.parse("(96+1)/2-100")
+        XCTAssertNotNil(node)
 
-        let resultValue = result?.converted(Double.self)
-        XCTAssertNotNil(resultValue)
+        let nodeValue = node?.converted(Double.self)
+        XCTAssertNotNil(nodeValue)
 
-        if let value = resultValue {
+        if let value = nodeValue {
             XCTAssertEqual(value , -51.5, accuracy: 0.1)
         }
     }

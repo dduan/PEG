@@ -1,6 +1,6 @@
 public indirect enum Expression {
     public final class Properties {
-        var convert: ((Result) throws -> Any)? = nil
+        var convert: ((Node) throws -> Any)? = nil
         public init() {}
     }
 
@@ -41,7 +41,7 @@ public indirect enum Expression {
         }
     }
 
-    public var convert: ((Result) throws -> Any)? {
+    public var convert: ((Node) throws -> Any)? {
         get {
             return self.properties.convert
         }

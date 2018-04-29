@@ -1,9 +1,9 @@
-extension Result: DotRepresentable {
+extension Node: DotRepresentable {
     var dotTitle: String {
         return self.description
     }
 
-    var dotChildren: [Result] {
+    var dotChildren: [Node] {
         return self.children
     }
 }

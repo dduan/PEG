@@ -20,8 +20,8 @@ public final class Grammar {
         self.rootName = rootName
         let peg = Grammar(rootName: "Grammar", bootstrap())
         do {
-            let result = try peg.parse(rules)
-            guard let rules = result.converted([Rule].self) else {
+            let node = try peg.parse(rules)
+            guard let rules = node.converted([Rule].self) else {
                 throw ParserGenerationError.generationFailed
             }
 
@@ -43,11 +43,11 @@ public final class Grammar {
         self.rules = [String: Rule](uniqueKeysWithValues: rules.map { ($0.name, $0) })
     }
 
-    public func convert(_ ruleName: String, with convert: @escaping (Result) -> Any) {
+    public func convert(_ ruleName: String, with convert: @escaping (Node) -> Any) {
         self.rules[ruleName]?.expression.convert = convert
     }
 
-    public func parse(_ text: String) throws -> Result {
+    public func parse(_ text: String) throws -> Node {
         let context = Context(text: text, position: 0, grammar: self, trace: [])
         guard let rootRule = self.rules[self.rootName] else {
             throw ParserGenerationError.unknownRoot(self.rootName)
@@ -60,7 +60,7 @@ public final class Grammar {
         return self.rules[name]?.expression
     }
 
-    func parse(ruleName: String, context: Context) throws -> Result {
+    func parse(ruleName: String, context: Context) throws -> Node {
         guard let rule = self.rules[ruleName] else {
             throw ParserGenerationError.unknownRuleReference(ruleName, context)
         }

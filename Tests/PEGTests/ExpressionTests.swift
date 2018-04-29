@@ -54,9 +54,9 @@ final class ExpressionTests: XCTestCase {
         let sequence = seq(group, literal, group)
         let repeatExpr0 = zero(sequence)
         XCTAssertNoThrow(try repeatExpr0.parse(ctx("xxxxxx")))
-        let repeatExpr0Result = try repeatExpr0.parse(ctx("daafxxxx"))
-        XCTAssertEqual(repeatExpr0Result.text, "daaf")
-        XCTAssertEqual(repeatExpr0Result.children[0].text, "daaf")
+        let repeatExpr0Node = try repeatExpr0.parse(ctx("daafxxxx"))
+        XCTAssertEqual(repeatExpr0Node.text, "daaf")
+        XCTAssertEqual(repeatExpr0Node.children[0].text, "daaf")
 
     }
 
@@ -97,10 +97,10 @@ final class ExpressionTests: XCTestCase {
     func testOptional() throws {
         let maybeExpr = maybe(literal)
 
-        let maybeNoResult = try maybeExpr.parse(ctx("xxxx"))
-        XCTAssertEqual(maybeNoResult.text.isEmpty, true)
+        let maybeNoNode = try maybeExpr.parse(ctx("xxxx"))
+        XCTAssertEqual(maybeNoNode.text.isEmpty, true)
 
-        let maybeYesResult = try maybeExpr.parse(ctx("aaxx"))
-        XCTAssertEqual(maybeYesResult.text, "aa")
+        let maybeYesNode = try maybeExpr.parse(ctx("aaxx"))
+        XCTAssertEqual(maybeYesNode.text, "aa")
     }
 }

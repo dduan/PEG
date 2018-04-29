@@ -25,18 +25,18 @@ final class ArithmeticParserGenerationTests: XCTestCase {
         grammar.convert(kNumber) { Double($0.text)! }
 
         // Primary    <- '(' Arithmetic ')' / Number
-        grammar.convert(kPrimary) { result in
-            if result.choice == 1 {
-                return result[0].converted(Double.self) !! "Expected Primary choice #2"
+        grammar.convert(kPrimary) { node in
+            if node.choice == 1 {
+                return node[0].converted(Double.self) !! "Expected Primary choice #2"
             }
 
-            return result[0][1].converted(Double.self) !! "Expected Primary choice #1"
+            return node[0][1].converted(Double.self) !! "Expected Primary choice #1"
         }
 
         // MulExpr    <- ('*' / '/') Primary
-        grammar.convert(kMulExpr) { result in
-            var n: Double = result[1].converted()!
-            let op = result[0]
+        grammar.convert(kMulExpr) { node in
+            var n: Double = node[1].converted()!
+            let op = node[0]
             if op.choice == 1 {
                 n = 1 / n
             }
@@ -44,17 +44,17 @@ final class ArithmeticParserGenerationTests: XCTestCase {
         }
 
         // Factor     <- Primary MulExpr*
-        grammar.convert(kFactor) { result in
-            let n: Double = result[0].converted()!
-            return result[1]
+        grammar.convert(kFactor) { node in
+            let n: Double = node[0].converted()!
+            return node[1]
                 .children
                 .reduce(n) { $0 * $1.converted()! }
         }
 
         // AddExpr    <- ('+' / '-') Factor
-        grammar.convert(kAddExpr) { result in
-            var n: Double = result.children[1].converted()!
-            let op = result.children[0]
+        grammar.convert(kAddExpr) { node in
+            var n: Double = node.children[1].converted()!
+            let op = node.children[0]
             if op.choice == 1 {
                 n = -n
             }
@@ -62,20 +62,20 @@ final class ArithmeticParserGenerationTests: XCTestCase {
         }
 
         // Arithmetic <- Factor AddExpr*
-        grammar.convert(kArithmetic) { result in
-            let n: Double = result.children[0].converted() ?? 0
-            return result[1]
+        grammar.convert(kArithmetic) { node in
+            let n: Double = node.children[0].converted() ?? 0
+            return node[1]
                 .children
                 .reduce(n) { $0 + $1.converted()! }
         }
 
 
-        let result = try grammar.parse("(96+1)/2-100")
+        let node = try grammar.parse("(96+1)/2-100")
 
-        let resultValue = result.converted(Double.self)
-        XCTAssertNotNil(resultValue)
+        let nodeValue = node.converted(Double.self)
+        XCTAssertNotNil(nodeValue)
 
-        if let value = resultValue {
+        if let value = nodeValue {
             XCTAssertEqual(value , -51.5, accuracy: 0.1)
         }
     }

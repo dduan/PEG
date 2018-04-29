@@ -1,23 +1,23 @@
 extension Expression {
-    public func parse(_ context: Context) throws -> Result {
+    public func parse(_ context: Context) throws -> Node {
         context.trace.append(self)
 
-        let rawResult = try self.parse(raw: context)
+        let rawNode = try self.parse(raw: context)
         _ = context.trace.popLast()
 
         guard let convert = self.convert else {
-            return rawResult
+            return rawNode
         }
 
         do {
-            let converted = try convert(rawResult)
-            return rawResult.with(value: .converted(converted))
+            let converted = try convert(rawNode)
+            return rawNode.with(value: .converted(converted))
         } catch let error {
-            throw ParsingError(expression: self, context: context, reason: .resultConversionFailure(error))
+            throw ParsingError(expression: self, context: context, reason: .nodeConversionFailure(error))
         }
     }
 
-    private func parse(raw context: Context) throws -> Result {
+    private func parse(raw context: Context) throws -> Node {
         switch self {
         case .literal(let literal, _):
             return try self.parseLiteral(with: literal, context: context)
@@ -38,19 +38,19 @@ extension Expression {
         }
     }
 
-    private func parseLiteral(with literal: String, context: Context) throws -> Result {
+    private func parseLiteral(with literal: String, context: Context) throws -> Node {
         let text = context.text
         let start = context.cursor
         if text.dropFirst(start).starts(with: literal) {
-            let position = Result.Position(text, start, start + literal.count)
-            return Result(position: position)
+            let position = Node.Position(text, start, start + literal.count)
+            return Node(position: position)
         }
 
         throw ParsingError(expression: self, context: context)
     }
 
     private func parseGroup(with kind: Expression.CharacterGroupKind, group: CharacterGroup,
-                            context: Context) throws -> Result
+                            context: Context) throws -> Node
     {
         guard let character = context.text.dropFirst(context.cursor).first else {
             throw ParsingError(expression: self, context: context, reason: .inputTooShort)
@@ -60,37 +60,37 @@ extension Expression {
 
         switch (isInGroup, kind) {
         case (true, .whitelist), (false, .blacklist):
-            let position = Result.Position(context.text, context.cursor, context.cursor + 1)
-            return Result(position: position)
+            let position = Node.Position(context.text, context.cursor, context.cursor + 1)
+            return Node(position: position)
         default:
             throw ParsingError(expression: self, context: context)
         }
     }
 
-    private func parseSequence(with expressions: [Expression], context: Context) throws -> Result {
+    private func parseSequence(with expressions: [Expression], context: Context) throws -> Node {
         let text = context.text
         let start = context.cursor
         let nextContext = context.copy()
 
-        var children = [Result]()
+        var children = [Node]()
 
         for expression in expressions {
-            let result = try expression.parse(nextContext)
-            let resultRange = result.position.range
-            nextContext.cursor += resultRange.upperBound - resultRange.lowerBound
-            children.append(result)
+            let node = try expression.parse(nextContext)
+            let nodeRange = node.position.range
+            nextContext.cursor += nodeRange.upperBound - nodeRange.lowerBound
+            children.append(node)
         }
 
-        let position = Result.Position(text, start, nextContext.cursor)
-        return Result(position: position, value: .raw(children))
+        let position = Node.Position(text, start, nextContext.cursor)
+        return Node(position: position, value: .raw(children))
     }
 
-    private func parseOneOf(with expressions: [Expression], context: Context) throws -> Result {
+    private func parseOneOf(with expressions: [Expression], context: Context) throws -> Node {
         var subexpressionErrors = [ParsingError]()
         for (index, expression) in expressions.enumerated() {
             do {
-                let subResult = try expression.parse(context)
-                return Result(position: subResult.position, choice: index, value: .raw([subResult]))
+                let subNode = try expression.parse(context)
+                return Node(position: subNode.position, choice: index, value: .raw([subNode]))
             } catch let error as ParsingError {
                 subexpressionErrors.append(error)
             }
@@ -100,21 +100,21 @@ extension Expression {
     }
 
     private func parseRepeat(with kind: Expression.RepeatKind, expression: Expression,
-                             context: Context) throws-> Result
+                             context: Context) throws-> Node
     {
         let text = context.text
         let start = context.cursor
         let nextContext = context.copy()
-        var children = [Result]()
+        var children = [Node]()
         var lastKnownError = ParsingError(expression: self, context: context)
         while true {
             do {
-                let result = try expression.parse(nextContext)
-                guard !result.position.range.isEmpty else {
+                let node = try expression.parse(nextContext)
+                guard !node.position.range.isEmpty else {
                     break
                 }
-                children.append(result)
-                nextContext.cursor = result.position.range.upperBound
+                children.append(node)
+                nextContext.cursor = node.position.range.upperBound
             } catch let error as ParsingError {
                 lastKnownError = error
                 break
@@ -125,12 +125,12 @@ extension Expression {
             throw ParsingError(expression: self, context: context, children: [lastKnownError])
         }
 
-        let position = Result.Position(text, start, nextContext.cursor)
-        return Result(position: position, value: .raw(children))
+        let position = Node.Position(text, start, nextContext.cursor)
+        return Node(position: position, value: .raw(children))
     }
 
     private func parsePredicate(with kind: Expression.PredicateKind, expression: Expression,
-                                context: Context) throws -> Result
+                                context: Context) throws -> Node
     {
         let error: Error?
         do {
@@ -142,8 +142,8 @@ extension Expression {
 
         switch (error, kind) {
         case (.none, .and), (.some, .not):
-            let position = Result.Position(context.text, context.cursor, context.cursor)
-            return Result(position: position)
+            let position = Node.Position(context.text, context.cursor, context.cursor)
+            return Node(position: position)
         case (.some(let error), .and):
             throw error
         default:
@@ -151,17 +151,17 @@ extension Expression {
         }
     }
 
-    private func parseOptional(with expression: Expression, context: Context) throws -> Result {
+    private func parseOptional(with expression: Expression, context: Context) throws -> Node {
         do {
-            let result = try expression.parse(context)
-            return Result(position: result.position.copy(), choice: 1, value: .raw([result]))
+            let node = try expression.parse(context)
+            return Node(position: node.position.copy(), choice: 1, value: .raw([node]))
         } catch {
-            let position = Result.Position(context.text, context.cursor, context.cursor)
-            return Result(position: position, choice: 0)
+            let position = Node.Position(context.text, context.cursor, context.cursor)
+            return Node(position: position, choice: 0)
         }
     }
 
-    private func parseRule(withName name: String, context: Context) throws -> Result {
+    private func parseRule(withName name: String, context: Context) throws -> Node {
         return try context.grammar.parse(ruleName: name, context: context)
     }
 }
