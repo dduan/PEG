@@ -15,9 +15,18 @@ let input = """
     Integral <- "0" / [1-9] [0-9]*
     Fraction <- "." [0-9]+
     Exponent <- ("e" / "E") ("+" / "-")? [0-9]+
-    Space    <- [ \t\r\n]+
+    Space    <- [ \\t\\r\\n]+
 """
 
+let s = """
+{
+    "a" : [
+        1,
+        \t2,
+        23e2
+    ]
+}
+"""
 let grammar = try Grammar(rootName: "JSON", input)
-let result = try grammar.parse("{\"a\" : [1, \t2, 23e2]}")
+let result = try grammar.parse(s)
 print(result)
