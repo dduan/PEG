@@ -8,14 +8,25 @@ private func character(fromAnyOrClass result: Result) -> Character {
 
 // Char       <- '\\' [nrt'"\\[\\]\\] / !'\\' .
 private func character(fromChar char: Result) -> Character {
-    return character(fromAnyOrClass: char[1])
+    enum Choice: Int { case escaped = 0; case normal = 1 }
+    guard let choice = Choice(rawValue: char.choice) else {
+        fatalError("expected choice from Range result")
+    }
+
+    switch (choice, char[0][1].firstCharacter) {
+    case (.escaped, .some("n")): return "\n"
+    case (.escaped, .some("t")): return "\t"
+    case (.escaped, .some("r")): return "\r"
+    default:
+        return character(fromAnyOrClass: char[0][1])
+    }
 }
 
 // Literal    <- [’] (![’] Char)* [’] Spacing / ["] (!["] Char)* ["] Spacing
 private func convertLiteral(result: Result) -> Expression {
-    let characters = result[1]
+    let characters = result[0][1]
         .children
-        .map { character(fromChar: $0[1]) }
+        .map { character(fromAnyOrClass: $0[1][0]) }
 
     return s(String(characters))
 }
@@ -29,11 +40,11 @@ private func range(fromRange result: Result) -> ClosedRange<Character> {
 
     switch choice {
     case .range:
-        let first = character(fromChar: result[0])
-        let second = character(fromChar: result[2])
+        let first = character(fromChar: result[0][0])
+        let second = character(fromChar: result[0][2])
         return first...second
     case .single:
-        let char = character(fromChar: result)
+        let char = character(fromChar: result[0])
         return char...char
     }
 }
@@ -83,11 +94,11 @@ private func convertPrimary(result: Result) -> Expression {
 
     switch choice {
     case .reference:
-        return ref(result[0].converted()!)
+        return ref(result[0][0].converted()!)
     case .expression:
-        return result[1].converted()!
+        return result[0][1].converted()!
     case .literal, .class:
-        return result.converted()!
+        return result[0].converted()!
     case .dot:
         return any
     }

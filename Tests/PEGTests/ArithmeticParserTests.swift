@@ -42,9 +42,9 @@ final class ArithmeticParserTests: XCTestCase {
         // Primary    <- '(' Arithmetic ')' / Number
         primaryExpr.convert = { result in
             if result.choice == 1 {
-                return result.converted(Double.self)!
+                return result[0].converted(Double.self)!
             }
-            return result.children[1].converted(Double.self)!
+            return result[0][1].converted(Double.self)!
         }
 
         // MulExpr    <- ('*' / '/') Primary

@@ -93,10 +93,6 @@ public struct Result {
     func with(value: Value) -> Result {
         return Result(position: self.position, choice: self.choice, value: value)
     }
-
-    func with(choice: Int) -> Result {
-        return Result(position: self.position, choice: choice, value: self.value)
-    }
 }
 
 extension Result: CustomStringConvertible {

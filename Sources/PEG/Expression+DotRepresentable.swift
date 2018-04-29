@@ -14,12 +14,19 @@ extension Expression: DotRepresentable {
             return "\(prefix)\(group)]"
         case .rule(let name, _):
             return "*\(name)"
-        case .sequence:
-            return "[]"
-        case .oneOf:
-            return "/"
-        case .repeat(let kind, _, _):
-            return kind == .zeroOrMore ? "*" : "+"
+        case .sequence(let subExpressions, _):
+            let body = subExpressions
+                .map { $0.dotTitle }
+                .joined(separator: " , ")
+            return "@[\(body)]"
+        case .oneOf(let alternatives, _):
+            let body = alternatives
+                .map { $0.dotTitle }
+                .joined(separator: " / ")
+            return "(\(body)"
+        case .repeat(let kind, let child, _):
+            let suffix = kind == .zeroOrMore ? "*" : "+"
+            return child.dotTitle + suffix
         case .predicate(let kind, _, _):
             return kind == .and ? "&" : "!"
         case .optional:

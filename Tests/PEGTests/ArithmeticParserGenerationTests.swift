@@ -27,10 +27,10 @@ final class ArithmeticParserGenerationTests: XCTestCase {
         // Primary    <- '(' Arithmetic ')' / Number
         grammar.convert(kPrimary) { result in
             if result.choice == 1 {
-                return result.converted(Double.self) !! "Expected Primary choice #2"
+                return result[0].converted(Double.self) !! "Expected Primary choice #2"
             }
 
-            return result[1].converted(Double.self) !! "Expected Primary choice #1"
+            return result[0][1].converted(Double.self) !! "Expected Primary choice #1"
         }
 
         // MulExpr    <- ('*' / '/') Primary

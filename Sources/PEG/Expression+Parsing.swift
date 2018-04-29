@@ -89,8 +89,8 @@ extension Expression {
         var subexpressionErrors = [ParsingError]()
         for (index, expression) in expressions.enumerated() {
             do {
-                let result = try expression.parse(context)
-                return result.with(choice: index)
+                let subResult = try expression.parse(context)
+                return Result(position: subResult.position, choice: index, value: .raw([subResult]))
             } catch let error as ParsingError {
                 subexpressionErrors.append(error)
             }
