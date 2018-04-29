@@ -1,6 +1,6 @@
-all: test playground
+all: test play
 
-playground: build
+play: build
 	@.build/debug/playground
 
 build:
