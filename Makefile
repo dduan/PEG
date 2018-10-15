@@ -1,7 +1,4 @@
-all: test play
-
-play: build
-	@.build/debug/playground
+all: test
 
 build:
 	@swift build

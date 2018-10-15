@@ -1,4 +1,4 @@
-// swift-tools-version:4.0
+// swift-tools-version:4.2
 
 import PackageDescription
 
@@ -8,14 +8,8 @@ let package = Package(
         .library(
             name: "PEG",
             targets: ["PEG"]),
-        .executable(
-            name: "playground",
-            targets: ["playground"]),
     ],
     targets: [
-        .target(
-            name: "playground",
-            dependencies: ["PEG"]),
         .target(
             name: "PEG",
             dependencies: []),
